@@ -11,6 +11,7 @@ import {
     ScheduleHistoryEntry,
     TaskComment,
 } from '../types/Task';
+import { TaskStateRulesEngine } from './TaskStateRulesEngine';
 
 export class TaskService {
     private tasksFilePath: string;
@@ -35,6 +36,10 @@ export class TaskService {
             if (fs.existsSync(this.tasksFilePath)) {
                 const data = fs.readFileSync(this.tasksFilePath, 'utf-8');
                 this.tasks = JSON.parse(data);
+                // Apply rules engine to all loaded tasks
+                this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
+                // Save if any states were updated
+                this.saveTasks();
             } else {
                 this.tasks = [];
                 this.saveTasks();
@@ -127,17 +132,25 @@ export class TaskService {
     }
 
     /**
-     * Get all tasks
+     * Get all tasks (with rules engine applied)
      */
     getAllTasks(): Task[] {
+        // Apply rules engine to all tasks before returning
+        this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
+        this.saveTasks();
         return [...this.tasks];
     }
 
     /**
-     * Get a task by ID
+     * Get a task by ID (with rules engine applied)
      */
     getTaskById(id: string): Task | undefined {
-        return this.tasks.find(task => task.id === id);
+        const task = this.tasks.find(task => task.id === id);
+        if (task) {
+            TaskStateRulesEngine.applyRules(task);
+            this.saveTasks();
+        }
+        return task;
     }
 
     /**
@@ -152,6 +165,16 @@ export class TaskService {
 
         const task = this.tasks[taskIndex];
 
+        // Validate state changes
+        if (input.state !== undefined && input.state !== task.state) {
+            if (!TaskStateRulesEngine.canUserSetState(task.state, input.state)) {
+                throw new Error(
+                    `Cannot change state from ${task.state} to ${input.state}. ` +
+                    `User can only set: ${TaskStateRulesEngine.getAvailableUserStates(task).join(', ')}`
+                );
+            }
+        }
+
         if (input.title !== undefined) {
             task.title = input.title;
         }
@@ -164,6 +187,9 @@ export class TaskService {
         if (input.dueDateTime !== undefined) {
             task.dueDateTime = input.dueDateTime;
         }
+
+        // Apply rules engine (but don't override user-set final states)
+        TaskStateRulesEngine.applyRules(task);
 
         this.saveTasks();
         return task;
@@ -212,6 +238,9 @@ export class TaskService {
         task.scheduleHistory.push(entry);
         task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
 
+        // Apply rules engine after adding schedule entry
+        TaskStateRulesEngine.applyRules(task);
+
         this.saveTasks();
         return task;
     }
@@ -228,6 +257,9 @@ export class TaskService {
 
         task.scheduleHistory = task.scheduleHistory.filter(entry => entry.id !== entryId);
         task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
+
+        // Apply rules engine after removing schedule entry
+        TaskStateRulesEngine.applyRules(task);
 
         this.saveTasks();
         return task;
@@ -255,9 +287,12 @@ export class TaskService {
     }
 
     /**
-     * Get tasks by state
+     * Get tasks by state (with rules engine applied)
      */
     getTasksByState(state: string): Task[] {
+        // Apply rules to all tasks first
+        this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
+        this.saveTasks();
         return this.tasks.filter(task => task.state === state);
     }
 }

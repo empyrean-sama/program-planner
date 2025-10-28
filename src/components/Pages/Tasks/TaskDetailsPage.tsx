@@ -35,7 +35,8 @@ import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
 
-const taskStates: TaskState[] = ['Filed', 'Scheduled', 'Doing', 'Finished', 'Failed', 'Deferred', 'Removed'];
+// User can only set these states
+const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
 export default function TaskDetailsPage() {
     const { taskId } = useParams<{ taskId: string }>();
@@ -45,6 +46,7 @@ export default function TaskDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+    const [saveError, setSaveError] = useState<string>('');
 
     useEffect(() => {
         loadTask();
@@ -81,6 +83,7 @@ export default function TaskDetailsPage() {
     const handleSave = async () => {
         if (!task) return;
 
+        setSaveError('');
         const result = await window.taskAPI.updateTask({
             id: task.id,
             title: task.title,
@@ -91,6 +94,8 @@ export default function TaskDetailsPage() {
 
         if (result.success) {
             loadTask();
+        } else {
+            setSaveError(result.error || 'Failed to save task');
         }
     };
 
@@ -173,19 +178,40 @@ export default function TaskDetailsPage() {
                                 size="small"
                             />
 
-                            {/* State */}
-                            <FormControl fullWidth size="small">
-                                <InputLabel>State</InputLabel>
-                                <Select
+                            {/* State - System-managed display with user override option */}
+                            <Box>
+                                <TextField
+                                    label="Current State"
+                                    fullWidth
                                     value={task.state}
-                                    label="State"
+                                    InputProps={{ readOnly: true }}
+                                    size="small"
+                                    helperText="State is automatically managed by the system. You can override to final states below."
+                                />
+                            </Box>
+
+                            {/* User State Override - Only show final states */}
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Set Final State (Optional)</InputLabel>
+                                <Select
+                                    value={userSettableStates.includes(task.state) ? task.state : ''}
+                                    label="Set Final State (Optional)"
                                     onChange={(e) => handleFieldChange('state', e.target.value as TaskState)}
                                 >
-                                    {taskStates.map(state => (
+                                    <MenuItem value="">
+                                        <em>Keep system-managed state</em>
+                                    </MenuItem>
+                                    {userSettableStates.map((state: TaskState) => (
                                         <MenuItem key={state} value={state}>{state}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
+
+                            {saveError && (
+                                <Box sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
+                                    <Typography variant="body2">{saveError}</Typography>
+                                </Box>
+                            )}
 
                             {/* Title */}
                             <TextField
