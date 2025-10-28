@@ -3,15 +3,14 @@ import {
     Box,
     Button,
     Typography,
-    Dialog,
     Tabs,
     Tab,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useNavigate } from 'react-router';
 import { Task, TaskState } from '../../../types/Task';
-import TaskList from './TaskList';
+import { TaskCardGrid } from './TaskCard';
 import TaskDialog from './TaskDialog';
-import TaskDetailsDialog from './TaskDetailsDialog';
 
 const taskStates: TaskState[] = ['Filed', 'Scheduled', 'Doing', 'Finished', 'Failed', 'Deferred', 'Removed'];
 
@@ -19,8 +18,7 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [selectedTab, setSelectedTab] = useState(0);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadTasks();
@@ -43,18 +41,7 @@ export default function TasksPage() {
     };
 
     const handleTaskClick = (task: Task) => {
-        setSelectedTask(task);
-        setDetailsDialogOpen(true);
-    };
-
-    const handleTaskUpdated = () => {
-        loadTasks();
-    };
-
-    const handleTaskDeleted = () => {
-        setDetailsDialogOpen(false);
-        setSelectedTask(null);
-        loadTasks();
+        navigate(`/tasks/${task.id}`);
     };
 
     const getFilteredTasks = (): Task[] => {
@@ -90,8 +77,8 @@ export default function TasksPage() {
                 })}
             </Tabs>
 
-            <Box sx={{ flex: 1, overflow: 'auto' }}>
-                <TaskList tasks={getFilteredTasks()} onTaskClick={handleTaskClick} />
+            <Box sx={{ flex: 1, overflow: 'auto', mt: 2 }}>
+                <TaskCardGrid tasks={getFilteredTasks()} onTaskClick={handleTaskClick} />
             </Box>
 
             <TaskDialog
@@ -99,19 +86,6 @@ export default function TasksPage() {
                 onClose={() => setCreateDialogOpen(false)}
                 onTaskCreated={handleTaskCreated}
             />
-
-            {selectedTask && (
-                <TaskDetailsDialog
-                    open={detailsDialogOpen}
-                    task={selectedTask}
-                    onClose={() => {
-                        setDetailsDialogOpen(false);
-                        setSelectedTask(null);
-                    }}
-                    onTaskUpdated={handleTaskUpdated}
-                    onTaskDeleted={handleTaskDeleted}
-                />
-            )}
         </Box>
     );
 }

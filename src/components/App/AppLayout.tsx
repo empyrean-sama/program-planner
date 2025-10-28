@@ -5,6 +5,7 @@ import NotFoundErrorPage from '../Pages/Error/NotFoundErrorPage';
 import HomePage from '../Pages/Home/HomePage';
 import CalendarPage from '../Pages/Calendar/CalendarPage';
 import TasksPage from '../Pages/Tasks/TasksPage';
+import TaskDetailsPage from '../Pages/Tasks/TaskDetailsPage';
 
 export default function AppLayout() {
     const router = createBrowserRouter(createRoutesFromElements(
@@ -12,6 +13,7 @@ export default function AppLayout() {
             <Route index element={<HomePage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="tasks" element={<TasksPage />} />
+            <Route path="tasks/:taskId" element={<TaskDetailsPage />} />
             <Route path="*" element={<NotFoundErrorPage />} />
         </Route>
     ));
