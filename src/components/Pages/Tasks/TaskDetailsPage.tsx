@@ -30,7 +30,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
@@ -38,9 +38,17 @@ import CommentDialog from './CommentDialog';
 // User can only set these states
 const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
+interface LocationState {
+    from?: string;
+    calendarView?: 'month' | 'week' | 'day';
+    calendarDate?: string;
+}
+
 export default function TaskDetailsPage() {
     const { taskId } = useParams<{ taskId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+    const locationState = location.state as LocationState | null;
     const [task, setTask] = useState<Task | null>(null);
     const [originalTask, setOriginalTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
@@ -48,6 +56,20 @@ export default function TaskDetailsPage() {
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
     const [saveError, setSaveError] = useState<string>('');
 
+    const handleBack = () => {
+        // If we came from calendar, navigate back to calendar with the correct view and date
+        if (locationState?.from === '/calendar' && locationState.calendarView && locationState.calendarDate) {
+            navigate('/calendar', {
+                state: {
+                    view: locationState.calendarView,
+                    date: locationState.calendarDate,
+                },
+            });
+        } else {
+            // Default to tasks page
+            navigate('/tasks');
+        }
+    };
     useEffect(() => {
         loadTask();
     }, [taskId]);
@@ -130,8 +152,8 @@ export default function TaskDetailsPage() {
         return (
             <Box sx={{ p: 3 }}>
                 <Typography variant="h5">Task not found</Typography>
-                <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/tasks')} sx={{ mt: 2 }}>
-                    Back to Tasks
+                <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mt: 2 }}>
+                    Back
                 </Button>
             </Box>
         );
@@ -141,7 +163,7 @@ export default function TaskDetailsPage() {
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3, overflow: 'auto' }}>
             {/* Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                <IconButton onClick={() => navigate('/tasks')}>
+                <IconButton onClick={handleBack}>
                     <ArrowBackIcon />
                 </IconButton>
                 <Typography variant="h4" sx={{ flex: 1 }}>Task Details</Typography>

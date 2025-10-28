@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
+import { useLocation } from 'react-router';
 import CalendarHeader, { CalendarView } from './CalendarHeader';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
@@ -18,13 +19,31 @@ import useAppGlobalState from '../../../hooks/useAppGlobalState';
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 
+interface LocationState {
+    view?: CalendarView;
+    date?: string;
+}
+
 export default function CalendarPage() {
     const globalState = useAppGlobalState();
+    const location = useLocation();
+    const locationState = location.state as LocationState | null;
+    
     const [view, setView] = useState<CalendarView>('month');
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [contextMenu, setContextMenu] = useState<CalendarContextMenuPosition | null>(null);
     const [contextMenuContext, setContextMenuContext] =
         useState<CalendarContextMenuContext | null>(null);
+
+    // Restore view and date from navigation state if coming back from task details
+    useEffect(() => {
+        if (locationState?.view) {
+            setView(locationState.view);
+        }
+        if (locationState?.date) {
+            setSelectedDate(dayjs(locationState.date));
+        }
+    }, [locationState]);
 
     const handleViewChange = (newView: CalendarView) => {
         setView(newView);

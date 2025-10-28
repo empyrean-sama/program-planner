@@ -89,6 +89,8 @@ export default function DayView({ selectedDate, onContextMenu }: DayViewProps) {
                         showBorderLeft
                         day={selectedDate}
                         onContextMenu={onContextMenu}
+                        currentView="day"
+                        currentDate={selectedDate}
                     />
                 </Box>
             </Box>

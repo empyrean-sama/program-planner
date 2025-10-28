@@ -1,6 +1,8 @@
-import React from 'react';
-import { Box, Paper, Typography, useTheme } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, Typography, useTheme, Chip } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
+import { Task } from '../../../types/Task';
+import { getTaskDeadlinesForDate } from './utils/calendarTaskUtils';
 
 interface MonthViewProps {
     selectedDate: Dayjs;
@@ -13,6 +15,18 @@ const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function MonthView({ selectedDate, onDateSelect, onContextMenu, onDayDoubleClick }: MonthViewProps) {
     const theme = useTheme();
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    useEffect(() => {
+        loadTasks();
+    }, []);
+
+    const loadTasks = async () => {
+        const result = await window.taskAPI.getAllTasks();
+        if (result.success && result.data) {
+            setTasks(result.data);
+        }
+    };
 
     const getMonthWeeks = (): Dayjs[][] => {
         const startOfMonth = selectedDate.startOf('month');
@@ -86,6 +100,8 @@ export default function MonthView({ selectedDate, onDateSelect, onContextMenu, o
                             const isSelected = day.isSame(selectedDate, 'day');
                             const isToday = day.isSame(dayjs(), 'day');
                             const isCurrentMonth = day.isSame(selectedDate, 'month');
+                            const deadlines = getTaskDeadlinesForDate(tasks, day);
+                            const deadlineCount = deadlines.length;
 
                             return (
                                 <Paper
@@ -108,6 +124,7 @@ export default function MonthView({ selectedDate, onDateSelect, onContextMenu, o
                                         opacity: isCurrentMonth ? 1 : 0.4,
                                         display: 'flex',
                                         flexDirection: 'column',
+                                        minHeight: '80px',
                                         '&:hover': {
                                             backgroundColor: isSelected
                                                 ? theme.palette.primary.dark
@@ -122,10 +139,26 @@ export default function MonthView({ selectedDate, onDateSelect, onContextMenu, o
                                                 ? theme.palette.primary.contrastText
                                                 : theme.palette.text.primary,
                                             fontWeight: isToday ? 700 : 500,
+                                            mb: 0.5,
                                         }}
                                     >
                                         {day.format('D')}
                                     </Typography>
+                                    
+                                    {/* Deadline count indicator */}
+                                    {deadlineCount > 0 && (
+                                        <Chip
+                                            label={`${deadlineCount} deadline${deadlineCount > 1 ? 's' : ''}`}
+                                            size="small"
+                                            sx={{
+                                                height: '20px',
+                                                fontSize: '0.7rem',
+                                                backgroundColor: theme.palette.error.main,
+                                                color: theme.palette.error.contrastText,
+                                                fontWeight: 600,
+                                            }}
+                                        />
+                                    )}
                                 </Paper>
                             );
                         })}

@@ -102,6 +102,8 @@ export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick
                         hourHeight={HOUR_HEIGHT}
                         day={day}
                         onContextMenu={onContextMenu}
+                        currentView="week"
+                        currentDate={selectedDate}
                     />
                 ))}
             </Box>
