@@ -1,0 +1,145 @@
+import React, { useState } from 'react';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    Box,
+} from '@mui/material';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import { CreateTaskInput } from '../../../types/Task';
+
+interface TaskDialogProps {
+    open: boolean;
+    onClose: () => void;
+    onTaskCreated: () => void;
+}
+
+export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogProps) {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [dueDateTime, setDueDateTime] = useState<Dayjs | null>(null);
+    const [estimatedTime, setEstimatedTime] = useState('');
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    const handleClose = () => {
+        setTitle('');
+        setDescription('');
+        setDueDateTime(null);
+        setEstimatedTime('');
+        setErrors({});
+        onClose();
+    };
+
+    const validate = (): boolean => {
+        const newErrors: { [key: string]: string } = {};
+
+        if (!title.trim()) {
+            newErrors.title = 'Title is required';
+        }
+
+        if (!description.trim()) {
+            newErrors.description = 'Description is required';
+        }
+
+        if (estimatedTime && (isNaN(Number(estimatedTime)) || Number(estimatedTime) <= 0)) {
+            newErrors.estimatedTime = 'Estimated time must be a positive number';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleCreate = async () => {
+        if (!validate()) {
+            return;
+        }
+
+        const input: CreateTaskInput = {
+            title: title.trim(),
+            description: description.trim(),
+            dueDateTime: dueDateTime?.toISOString(),
+            estimatedTime: estimatedTime ? Number(estimatedTime) : undefined,
+        };
+
+        const result = await window.taskAPI.createTask(input);
+        if (result.success) {
+            handleClose();
+            onTaskCreated();
+        } else {
+            setErrors({ general: result.error || 'Failed to create task' });
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+            <DialogTitle>Create New Task</DialogTitle>
+            <DialogContent>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                    <TextField
+                        label="Title"
+                        fullWidth
+                        required
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        error={!!errors.title}
+                        helperText={errors.title}
+                    />
+
+                    <TextField
+                        label="Description"
+                        fullWidth
+                        required
+                        multiline
+                        rows={4}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        error={!!errors.description}
+                        helperText={errors.description}
+                    />
+
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DateTimePicker
+                            label="Due Date & Time (Optional)"
+                            value={dueDateTime}
+                            onChange={(newValue) => setDueDateTime(newValue)}
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                }
+                            }}
+                        />
+                    </LocalizationProvider>
+
+                    <TextField
+                        label="Estimated Time (minutes)"
+                        fullWidth
+                        type="number"
+                        value={estimatedTime}
+                        onChange={(e) => setEstimatedTime(e.target.value)}
+                        error={!!errors.estimatedTime}
+                        helperText={errors.estimatedTime || 'This cannot be changed after creation'}
+                        InputProps={{ inputProps: { min: 0 } }}
+                    />
+
+                    {errors.general && (
+                        <Box sx={{ color: 'error.main', mt: 1 }}>
+                            {errors.general}
+                        </Box>
+                    )}
+                </Box>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleCreate} variant="contained">
+                    Create
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+}
