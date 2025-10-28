@@ -369,7 +369,6 @@ export default function CalendarPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 p: 3,
-                overflow: 'hidden',
             }}
         >
             {/* Header */}
