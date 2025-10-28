@@ -87,9 +87,18 @@ export class TaskService {
 
     /**
      * Calculate elapsed time from schedule history
+     * Only includes entries where the end time is in the past
      */
     private calculateElapsedTime(scheduleHistory: ScheduleHistoryEntry[]): number {
-        return scheduleHistory.reduce((total, entry) => total + entry.duration, 0);
+        const now = new Date();
+        return scheduleHistory.reduce((total, entry) => {
+            const endTime = new Date(entry.endTime);
+            // Only count entries that have already ended
+            if (endTime <= now) {
+                return total + entry.duration;
+            }
+            return total;
+        }, 0);
     }
 
     /**
