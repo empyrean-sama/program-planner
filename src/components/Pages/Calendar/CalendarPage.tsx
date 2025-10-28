@@ -75,6 +75,11 @@ export default function CalendarPage() {
         setContextMenuContext(null);
     };
 
+    const handleDayDoubleClick = (date: Dayjs) => {
+        setSelectedDate(date);
+        setView('day');
+    };
+
     return (
         <Box
             sx={{
@@ -98,12 +103,14 @@ export default function CalendarPage() {
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                         onContextMenu={handleContextMenu}
+                        onDayDoubleClick={handleDayDoubleClick}
                     />
                 )}
                 {view === 'week' && (
                     <WeekView
                         selectedDate={selectedDate}
                         onContextMenu={handleContextMenu}
+                        onDayDoubleClick={handleDayDoubleClick}
                     />
                 )}
                 {view === 'day' && (

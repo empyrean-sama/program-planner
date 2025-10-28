@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import DayHeader from './DayHeader';
@@ -7,13 +7,15 @@ import TimeSlotColumn from './TimeSlotColumn';
 interface WeekViewProps {
     selectedDate: Dayjs;
     onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
+    onDayDoubleClick?: (date: Dayjs) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_HEIGHT = 60; // pixels per hour
 
-export default function WeekView({ selectedDate, onContextMenu }: WeekViewProps) {
+export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick }: WeekViewProps) {
     const theme = useTheme();
+    const [selectedDayHeader, setSelectedDayHeader] = useState<Dayjs | null>(null);
 
     const getWeekDays = (): Dayjs[] => {
         const startOfWeek = selectedDate.startOf('week');
@@ -21,6 +23,10 @@ export default function WeekView({ selectedDate, onContextMenu }: WeekViewProps)
     };
 
     const weekDays = getWeekDays();
+
+    const handleDayHeaderClick = (day: Dayjs) => {
+        setSelectedDayHeader(day);
+    };
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto' }}>
@@ -37,7 +43,13 @@ export default function WeekView({ selectedDate, onContextMenu }: WeekViewProps)
             >
                 <Box sx={{ width: '80px', flexShrink: 0 }} /> {/* Empty corner */}
                 {weekDays.map((day) => (
-                    <DayHeader key={day.format('YYYY-MM-DD')} day={day} />
+                    <DayHeader 
+                        key={day.format('YYYY-MM-DD')} 
+                        day={day}
+                        onDoubleClick={onDayDoubleClick}
+                        onClick={handleDayHeaderClick}
+                        isSelected={selectedDayHeader?.isSame(day, 'day') || false}
+                    />
                 ))}
             </Box>
 
