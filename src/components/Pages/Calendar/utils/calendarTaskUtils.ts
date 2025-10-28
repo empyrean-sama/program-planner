@@ -11,6 +11,8 @@ export interface TaskCalendarEvent {
     endTime: Dayjs;
     top: number;
     height: number;
+    column?: number;
+    totalColumns?: number;
 }
 
 export interface TaskDeadline {
@@ -139,3 +141,59 @@ export function getDeadlineColor(urgency: 'high' | 'medium' | 'low'): string {
         case 'low': return '#2196f3'; // blue
     }
 }
+
+/**
+ * Check if two events overlap in time
+ */
+function eventsOverlap(event1: TaskCalendarEvent, event2: TaskCalendarEvent): boolean {
+    return event1.startTime.isBefore(event2.endTime) && event1.endTime.isAfter(event2.startTime);
+}
+
+/**
+ * Calculate column layout for overlapping events
+ * Returns events with column and totalColumns properties set
+ */
+export function layoutEvents(events: TaskCalendarEvent[]): TaskCalendarEvent[] {
+    if (events.length === 0) return [];
+
+    // Sort events by start time, then by duration (longer events first)
+    const sortedEvents = [...events].sort((a, b) => {
+        const startDiff = a.startTime.diff(b.startTime);
+        if (startDiff !== 0) return startDiff;
+        return b.endTime.diff(b.startTime) - a.endTime.diff(a.startTime);
+    });
+
+    // Track which column each event is in
+    const eventColumns: number[] = new Array(sortedEvents.length).fill(-1);
+    const columns: TaskCalendarEvent[][] = [];
+
+    sortedEvents.forEach((event, index) => {
+        // Find the first column where this event doesn't overlap with any existing event
+        let column = 0;
+        while (column < columns.length) {
+            const overlaps = columns[column].some(existingEvent => 
+                eventsOverlap(event, existingEvent)
+            );
+            if (!overlaps) break;
+            column++;
+        }
+
+        // Assign event to column
+        eventColumns[index] = column;
+        if (!columns[column]) {
+            columns[column] = [];
+        }
+        columns[column].push(event);
+    });
+
+    // Calculate total columns needed for each time period
+    const maxColumns = columns.length;
+
+    // Update events with column information
+    return sortedEvents.map((event, index) => ({
+        ...event,
+        column: eventColumns[index],
+        totalColumns: maxColumns,
+    }));
+}
+

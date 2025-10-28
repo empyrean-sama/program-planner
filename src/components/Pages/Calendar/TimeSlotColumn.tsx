@@ -12,6 +12,7 @@ import {
     getDeadlineUrgency,
     getDeadlineColor,
     TaskCalendarEvent,
+    layoutEvents,
 } from './utils/calendarTaskUtils';
 
 interface TimeSlotColumnProps {
@@ -51,6 +52,9 @@ export default function TimeSlotColumn({
 
     const scheduleEvents = day ? getTaskSchedulesForDate(tasks, day) : [];
     const deadlines = day ? getTaskDeadlinesForDate(tasks, day) : [];
+    
+    // Calculate layout for overlapping events
+    const layoutedEvents = layoutEvents(scheduleEvents);
 
     const handleTaskClick = (taskId: string) => {
         navigate(`/tasks/${taskId}`, {
@@ -92,9 +96,13 @@ export default function TimeSlotColumn({
             ))}
             
             {/* Task schedule events */}
-            {scheduleEvents.map((event: TaskCalendarEvent, index: number) => {
+            {layoutedEvents.map((event: TaskCalendarEvent, index: number) => {
                 const position = calculateEventPosition(event, day!, hourHeight);
                 const taskColor = getTaskColor(event.task.state);
+                
+                // Calculate horizontal position based on column
+                const columnWidth = event.totalColumns ? 100 / event.totalColumns : 100;
+                const leftPercent = event.column !== undefined ? event.column * columnWidth : 0;
 
                 return (
                     <Tooltip
@@ -120,8 +128,8 @@ export default function TimeSlotColumn({
                             sx={{
                                 position: 'absolute',
                                 top: `${position.top}px`,
-                                left: '4px',
-                                right: '4px',
+                                left: `calc(${leftPercent}% + 2px)`,
+                                width: `calc(${columnWidth}% - 4px)`,
                                 height: `${position.height}px`,
                                 backgroundColor: taskColor,
                                 color: '#fff',
