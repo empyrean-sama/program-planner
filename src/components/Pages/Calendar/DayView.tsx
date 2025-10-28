@@ -5,12 +5,13 @@ import TimeSlotColumn from './TimeSlotColumn';
 
 interface DayViewProps {
     selectedDate: Dayjs;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_HEIGHT = 80; // pixels per hour for day view (larger for better visibility)
 
-export default function DayView({ selectedDate }: DayViewProps) {
+export default function DayView({ selectedDate, onContextMenu }: DayViewProps) {
     const theme = useTheme();
 
     return (
@@ -86,6 +87,8 @@ export default function DayView({ selectedDate }: DayViewProps) {
                         hours={HOURS}
                         hourHeight={HOUR_HEIGHT}
                         showBorderLeft
+                        day={selectedDate}
+                        onContextMenu={onContextMenu}
                     />
                 </Box>
             </Box>

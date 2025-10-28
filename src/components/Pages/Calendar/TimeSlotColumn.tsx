@@ -1,16 +1,21 @@
 import React from 'react';
 import { Box, useTheme } from '@mui/material';
+import { Dayjs } from 'dayjs';
 
 interface TimeSlotColumnProps {
     hours: number[];
     hourHeight: number;
     showBorderLeft?: boolean;
+    day?: Dayjs;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
 }
 
 export default function TimeSlotColumn({ 
     hours, 
     hourHeight,
-    showBorderLeft = true 
+    showBorderLeft = true,
+    day,
+    onContextMenu,
 }: TimeSlotColumnProps) {
     const theme = useTheme();
 
@@ -27,6 +32,7 @@ export default function TimeSlotColumn({
             {hours.map((hour) => (
                 <Box
                     key={hour}
+                    onContextMenu={(e) => day && onContextMenu?.(e, day, hour)}
                     sx={{
                         position: 'absolute',
                         top: `${hour * hourHeight}px`,

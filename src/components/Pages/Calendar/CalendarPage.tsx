@@ -7,6 +7,12 @@ import CalendarHeader, { CalendarView } from './CalendarHeader';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
 import DayView from './DayView';
+import CalendarContextMenu from './CalendarContextMenu';
+import { calendarCommands } from './commands/calendarCommands';
+import {
+    CalendarContextMenuPosition,
+    CalendarContextMenuContext,
+} from './types/CalendarContextMenuTypes';
 
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
@@ -14,6 +20,9 @@ dayjs.extend(isoWeek);
 export default function CalendarPage() {
     const [view, setView] = useState<CalendarView>('month');
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+    const [contextMenu, setContextMenu] = useState<CalendarContextMenuPosition | null>(null);
+    const [contextMenuContext, setContextMenuContext] =
+        useState<CalendarContextMenuContext | null>(null);
 
     const handleViewChange = (newView: CalendarView) => {
         setView(newView);
@@ -41,6 +50,28 @@ export default function CalendarPage() {
         }
     };
 
+    const handleContextMenu = (
+        event: React.MouseEvent,
+        date: Dayjs,
+        hour?: number
+    ) => {
+        event.preventDefault();
+        setContextMenu({
+            mouseX: event.clientX,
+            mouseY: event.clientY,
+        });
+        setContextMenuContext({
+            date,
+            hour,
+            view,
+        });
+    };
+
+    const handleCloseContextMenu = () => {
+        setContextMenu(null);
+        setContextMenuContext(null);
+    };
+
     return (
         <Box
             sx={{
@@ -63,11 +94,29 @@ export default function CalendarPage() {
                     <MonthView
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
+                        onContextMenu={handleContextMenu}
                     />
                 )}
-                {view === 'week' && <WeekView selectedDate={selectedDate} />}
-                {view === 'day' && <DayView selectedDate={selectedDate} />}
+                {view === 'week' && (
+                    <WeekView
+                        selectedDate={selectedDate}
+                        onContextMenu={handleContextMenu}
+                    />
+                )}
+                {view === 'day' && (
+                    <DayView
+                        selectedDate={selectedDate}
+                        onContextMenu={handleContextMenu}
+                    />
+                )}
             </Box>
+
+            <CalendarContextMenu
+                position={contextMenu}
+                context={contextMenuContext}
+                commands={calendarCommands}
+                onClose={handleCloseContextMenu}
+            />
         </Box>
     );
 }

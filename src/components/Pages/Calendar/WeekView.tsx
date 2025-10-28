@@ -6,12 +6,13 @@ import TimeSlotColumn from './TimeSlotColumn';
 
 interface WeekViewProps {
     selectedDate: Dayjs;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_HEIGHT = 60; // pixels per hour
 
-export default function WeekView({ selectedDate }: WeekViewProps) {
+export default function WeekView({ selectedDate, onContextMenu }: WeekViewProps) {
     const theme = useTheme();
 
     const getWeekDays = (): Dayjs[] => {
@@ -87,6 +88,8 @@ export default function WeekView({ selectedDate }: WeekViewProps) {
                         key={day.format('YYYY-MM-DD')}
                         hours={HOURS}
                         hourHeight={HOUR_HEIGHT}
+                        day={day}
+                        onContextMenu={onContextMenu}
                     />
                 ))}
             </Box>

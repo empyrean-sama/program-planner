@@ -5,11 +5,12 @@ import dayjs, { Dayjs } from 'dayjs';
 interface MonthViewProps {
     selectedDate: Dayjs;
     onDateSelect: (date: Dayjs) => void;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
 }
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function MonthView({ selectedDate, onDateSelect }: MonthViewProps) {
+export default function MonthView({ selectedDate, onDateSelect, onContextMenu }: MonthViewProps) {
     const theme = useTheme();
 
     const getMonthWeeks = (): Dayjs[][] => {
@@ -90,6 +91,7 @@ export default function MonthView({ selectedDate, onDateSelect }: MonthViewProps
                                     key={day.format('YYYY-MM-DD')}
                                     elevation={0}
                                     onClick={() => onDateSelect(day)}
+                                    onContextMenu={(e) => onContextMenu?.(e, day)}
                                     sx={{
                                         p: 1.5,
                                         cursor: 'pointer',
