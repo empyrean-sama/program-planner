@@ -70,8 +70,36 @@ When a command is executed, it receives a context object with:
 {
     date: Dayjs,           // The date that was right-clicked
     hour?: number,         // The hour (0-23) if in day/week view
-    view: 'month' | 'week' | 'day'  // Current calendar view
+    view: 'month' | 'week' | 'day',  // Current calendar view
+    globalState: IAppGlobalStateContextAPI  // Access to global app state and utilities
 }
+```
+
+### Global State API
+
+The `globalState` object provides access to:
+
+#### `showToast(message: string, severity?: ToastSeverity, duration?: number)`
+Display a toast notification to the user.
+
+**Parameters:**
+- `message: string` - The message to display (required)
+- `severity?: 'success' | 'error' | 'warning' | 'info'` - Toast type (default: 'info')
+- `duration?: number` - Auto-hide duration in milliseconds (default: 4000)
+
+**Features:**
+- Toasts stack up to a maximum of 3
+- Visual progress bar shows remaining time
+- Smooth slide-in animation
+- Auto-dismisses after duration
+
+**Example:**
+```typescript
+context.globalState.showToast(
+    'Event created successfully!',
+    'success',
+    4000
+);
 ```
 
 ## Example: Adding Multiple Commands
@@ -85,6 +113,10 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
         action: (context) => {
             console.log('Creating event at', context.date.format('YYYY-MM-DD'));
             // Open event creation dialog
+            context.globalState.showToast(
+                'Event created successfully!',
+                'success'
+            );
         },
     },
     {
@@ -99,6 +131,11 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
         action: (context) => {
             console.log('Viewing details for', context.date.format('YYYY-MM-DD'));
             // Navigate to day view or show details
+            context.globalState.showToast(
+                `Viewing ${context.date.format('MMMM D, YYYY')}`,
+                'info',
+                2000
+            );
         },
         disabled: (context) => context.view === 'day', // Disable if already in day view
     },

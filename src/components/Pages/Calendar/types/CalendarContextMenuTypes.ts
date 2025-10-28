@@ -1,4 +1,5 @@
 import { Dayjs } from 'dayjs';
+import IAppGlobalStateContextAPI from '../../../../interface/IAppGlobalStateContextAPI';
 
 export interface CalendarContextMenuPosition {
     mouseX: number;
@@ -9,6 +10,7 @@ export interface CalendarContextMenuContext {
     date: Dayjs;
     hour?: number;
     view: 'month' | 'week' | 'day';
+    globalState: IAppGlobalStateContextAPI;
 }
 
 export interface CalendarContextMenuCommand {

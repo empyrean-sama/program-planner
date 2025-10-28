@@ -18,6 +18,13 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
                 hour: context.hour,
                 view: context.view,
             });
+            
+            // Show toast notification
+            context.globalState.showToast(
+                `Hello World! Date: ${context.date.format('MMMM D, YYYY')}${context.hour !== undefined ? ` at ${context.hour}:00` : ''}`,
+                'success',
+                4000
+            );
         },
     },
     // Add more commands here as needed

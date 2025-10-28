@@ -13,11 +13,13 @@ import {
     CalendarContextMenuPosition,
     CalendarContextMenuContext,
 } from './types/CalendarContextMenuTypes';
+import useAppGlobalState from '../../../hooks/useAppGlobalState';
 
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 
 export default function CalendarPage() {
+    const globalState = useAppGlobalState();
     const [view, setView] = useState<CalendarView>('month');
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [contextMenu, setContextMenu] = useState<CalendarContextMenuPosition | null>(null);
@@ -64,6 +66,7 @@ export default function CalendarPage() {
             date,
             hour,
             view,
+            globalState,
         });
     };
 
