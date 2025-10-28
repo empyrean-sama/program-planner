@@ -44,6 +44,7 @@ export default function DayView({ selectedDate }: DayViewProps) {
                         display: 'flex',
                         position: 'relative',
                         minHeight: `${HOURS.length * HOUR_HEIGHT}px`,
+                        gap: 2,
                     }}
                 >
                     {/* Time labels column */}
@@ -52,7 +53,6 @@ export default function DayView({ selectedDate }: DayViewProps) {
                             width: '100px',
                             flexShrink: 0,
                             position: 'relative',
-                            pr: 2,
                         }}
                     >
                         {HOURS.map((hour) => (
@@ -68,6 +68,7 @@ export default function DayView({ selectedDate }: DayViewProps) {
                                     alignItems: 'flex-start',
                                     justifyContent: 'flex-end',
                                     pt: 0.5,
+                                    pr: 1,
                                 }}
                             >
                                 <Typography
