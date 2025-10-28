@@ -15,6 +15,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AppIcon from '../Common/AppIcon';
 
 const DRAWER_WIDTH = 72;
 
@@ -95,6 +96,8 @@ export default function Sidebar() {
                     backgroundColor: '#202225', // Discord sidebar color
                     display: 'flex',
                     flexDirection: 'column',
+                    position: 'relative',
+                    border: 'none',
                 },
             }}
         >
@@ -108,7 +111,17 @@ export default function Sidebar() {
                     backgroundColor: '#2F3136',
                 }}
             >
-                {/* Empty toolbar for spacing */}
+                <AppIcon
+                    sx={{
+                        fontSize: 40,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                            transform: 'scale(1.15) rotate(5deg)',
+                        },
+                    }}
+                    onClick={() => navigate('/')}
+                />
             </Toolbar>
             <Divider sx={{ borderColor: '#18191C' }} />
             

@@ -1,0 +1,64 @@
+import React from 'react';
+import { SvgIcon, SvgIconProps } from '@mui/material';
+
+export default function AppIcon(props: SvgIconProps) {
+    return (
+        <SvgIcon {...props} viewBox="0 0 48 48">
+            {/* Main shield/badge shape - like Python, Swift logos */}
+            <path
+                d="M 24 6 L 38 12 L 38 28 C 38 34 32 40 24 42 C 16 40 10 34 10 28 L 10 12 Z"
+                fill="#5865F2"
+            />
+            
+            {/* Inner gradient accent */}
+            <path
+                d="M 24 10 L 34 14 L 34 27 C 34 31 30 35 24 37 C 18 35 14 31 14 27 L 14 14 Z"
+                fill="#7289DA"
+            />
+            
+            {/* Code bracket symbols - left bracket */}
+            <path
+                d="M 20 18 L 16 18 L 16 30 L 20 30"
+                stroke="#FFFFFF"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+            
+            {/* Code bracket symbols - right bracket */}
+            <path
+                d="M 28 18 L 32 18 L 32 30 L 28 30"
+                stroke="#FFFFFF"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+            
+            {/* Forward slash in the middle - represents code */}
+            <line
+                x1="26"
+                y1="20"
+                x2="22"
+                y2="28"
+                stroke="#57F287"
+                strokeWidth="3"
+                strokeLinecap="round"
+            />
+            
+            {/* Small "P" letter at bottom for Program */}
+            <text
+                x="24"
+                y="38"
+                fontSize="8"
+                fontWeight="bold"
+                fill="#FFFFFF"
+                textAnchor="middle"
+                fontFamily="monospace"
+            >
+                P
+            </text>
+        </SvgIcon>
+    );
+}
