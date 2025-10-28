@@ -164,6 +164,10 @@ export class TaskService {
         }
 
         const task = this.tasks[taskIndex];
+        const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
+        const isBecomingFinal = input.state !== undefined && 
+                                finalStates.includes(input.state) && 
+                                !finalStates.includes(task.state);
 
         // Validate state changes
         if (input.state !== undefined && input.state !== task.state) {
@@ -186,6 +190,15 @@ export class TaskService {
         }
         if (input.dueDateTime !== undefined) {
             task.dueDateTime = input.dueDateTime;
+        }
+
+        // Remove all future schedule entries when task enters a final state
+        if (isBecomingFinal) {
+            const now = new Date();
+            task.scheduleHistory = task.scheduleHistory.filter(entry => {
+                const entryEnd = new Date(entry.endTime);
+                return entryEnd <= now;
+            });
         }
 
         // Apply rules engine (but don't override user-set final states)

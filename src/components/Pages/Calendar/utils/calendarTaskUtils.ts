@@ -42,16 +42,12 @@ export function getTaskDeadlinesForDate(tasks: Task[], date: Dayjs): TaskDeadlin
 
 /**
  * Get all task schedule entries for a specific date
- * Excludes tasks in final states (Removed, Finished, Deferred, Failed)
+ * Shows schedule entries for all tasks (including final states)
  */
 export function getTaskSchedulesForDate(tasks: Task[], date: Dayjs): TaskCalendarEvent[] {
     const events: TaskCalendarEvent[] = [];
-    const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
     tasks.forEach(task => {
-        // Skip tasks in final states
-        if (finalStates.includes(task.state)) return;
-
         task.scheduleHistory.forEach((entry: ScheduleHistoryEntry) => {
             const entryStart = dayjs(entry.startTime);
             const entryEnd = dayjs(entry.endTime);
