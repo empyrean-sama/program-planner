@@ -38,6 +38,7 @@ export default function CalendarPage() {
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [scheduleDialogDate, setScheduleDialogDate] = useState<Dayjs | undefined>(undefined);
     const [scheduleDialogHour, setScheduleDialogHour] = useState<number | undefined>(undefined);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Restore view and date from navigation state if coming back from task details
     useEffect(() => {
@@ -111,7 +112,8 @@ export default function CalendarPage() {
     };
 
     const handleScheduleAdded = () => {
-        // Refresh calendar views by re-rendering
+        // Refresh calendar views by incrementing refresh key
+        setRefreshKey(prev => prev + 1);
         setScheduleDialogOpen(false);
         globalState.showToast('Schedule entry added successfully', 'success', 3000);
     };
@@ -142,6 +144,7 @@ export default function CalendarPage() {
             <Box sx={{ flex: 1, minHeight: 0 }}>
                 {view === 'month' && (
                     <MonthView
+                        key={`month-${refreshKey}`}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                         onContextMenu={handleContextMenu}
@@ -150,6 +153,7 @@ export default function CalendarPage() {
                 )}
                 {view === 'week' && (
                     <WeekView
+                        key={`week-${refreshKey}`}
                         selectedDate={selectedDate}
                         onContextMenu={handleContextMenu}
                         onDayDoubleClick={handleDayDoubleClick}
@@ -157,6 +161,7 @@ export default function CalendarPage() {
                 )}
                 {view === 'day' && (
                     <DayView
+                        key={`day-${refreshKey}`}
                         selectedDate={selectedDate}
                         onContextMenu={handleContextMenu}
                     />
