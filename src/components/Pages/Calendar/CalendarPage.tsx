@@ -170,27 +170,32 @@ export default function CalendarPage() {
         );
 
         const hours = Array.from({ length: 24 }, (_, i) => i);
+        const hourHeight = 60; // pixels per hour
 
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto' }}>
                 {/* Day headers */}
                 <Box
                     sx={{
-                        display: 'grid',
-                        gridTemplateColumns: '80px repeat(7, 1fr)',
-                        gap: 1,
+                        display: 'flex',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 2,
+                        backgroundColor: theme.palette.background.default,
                         mb: 1,
                     }}
                 >
-                    <Box /> {/* Empty corner */}
+                    <Box sx={{ width: '80px', flexShrink: 0 }} /> {/* Empty corner */}
                     {weekDays.map((day) => {
                         const isToday = day.isSame(dayjs(), 'day');
                         return (
                             <Box
                                 key={day.format('YYYY-MM-DD')}
                                 sx={{
+                                    flex: 1,
                                     textAlign: 'center',
                                     py: 1,
+                                    mx: 0.5,
                                     backgroundColor: isToday
                                         ? theme.palette.primary.main
                                         : theme.palette.background.paper,
@@ -224,32 +229,35 @@ export default function CalendarPage() {
                     })}
                 </Box>
 
-                {/* Time grid */}
+                {/* Time slots with absolute positioning */}
                 <Box
                     sx={{
-                        display: 'grid',
-                        gridTemplateRows: `repeat(${hours.length}, 1fr)`,
-                        gap: 1,
-                        flex: 1,
+                        display: 'flex',
+                        position: 'relative',
+                        minHeight: `${hours.length * hourHeight}px`,
                     }}
                 >
-                    {hours.map((hour) => (
-                        <Box
-                            key={hour}
-                            sx={{
-                                display: 'grid',
-                                gridTemplateColumns: '80px repeat(7, 1fr)',
-                                gap: 1,
-                            }}
-                        >
+                    {/* Time labels column */}
+                    <Box
+                        sx={{
+                            width: '80px',
+                            flexShrink: 0,
+                            position: 'relative',
+                        }}
+                    >
+                        {hours.map((hour) => (
                             <Box
+                                key={hour}
                                 sx={{
+                                    position: 'absolute',
+                                    top: `${hour * hourHeight}px`,
+                                    left: 0,
+                                    right: 0,
+                                    height: `${hourHeight}px`,
                                     display: 'flex',
-                                    alignItems: 'center',
+                                    alignItems: 'flex-start',
                                     justifyContent: 'center',
-                                    backgroundColor: theme.palette.background.paper,
-                                    border: `1px solid ${theme.palette.divider}`,
-                                    borderRadius: 1,
+                                    pt: 0.5,
                                 }}
                             >
                                 <Typography
@@ -259,19 +267,39 @@ export default function CalendarPage() {
                                     {dayjs().hour(hour).format('h A')}
                                 </Typography>
                             </Box>
-                            {weekDays.map((day) => (
-                                <Paper
-                                    key={`${day.format('YYYY-MM-DD')}-${hour}`}
-                                    elevation={0}
+                        ))}
+                    </Box>
+
+                    {/* Day columns */}
+                    {weekDays.map((day, dayIndex) => (
+                        <Box
+                            key={day.format('YYYY-MM-DD')}
+                            sx={{
+                                flex: 1,
+                                position: 'relative',
+                                mx: 0.5,
+                                borderLeft: `1px solid ${theme.palette.divider}`,
+                            }}
+                        >
+                            {/* Hour lines */}
+                            {hours.map((hour) => (
+                                <Box
+                                    key={hour}
                                     sx={{
+                                        position: 'absolute',
+                                        top: `${hour * hourHeight}px`,
+                                        left: 0,
+                                        right: 0,
+                                        height: `${hourHeight}px`,
+                                        borderTop: `1px solid ${theme.palette.divider}`,
                                         backgroundColor: theme.palette.background.paper,
-                                        border: `1px solid ${theme.palette.divider}`,
                                         '&:hover': {
                                             backgroundColor: theme.palette.action.hover,
                                         },
                                     }}
                                 />
                             ))}
+                            {/* Events can be added here with absolute positioning */}
                         </Box>
                     ))}
                 </Box>
@@ -281,6 +309,7 @@ export default function CalendarPage() {
 
     const renderDayView = () => {
         const hours = Array.from({ length: 24 }, (_, i) => i);
+        const hourHeight = 80; // pixels per hour for day view (larger for better visibility)
 
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -300,51 +329,84 @@ export default function CalendarPage() {
                     </Typography>
                 </Box>
 
-                {/* Hourly grid */}
+                {/* Hourly timeline with absolute positioning */}
                 <Box
                     sx={{
-                        display: 'grid',
-                        gridTemplateRows: `repeat(${hours.length}, 1fr)`,
-                        gap: 1,
                         flex: 1,
+                        overflow: 'auto',
+                        position: 'relative',
                     }}
                 >
-                    {hours.map((hour) => (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            position: 'relative',
+                            minHeight: `${hours.length * hourHeight}px`,
+                        }}
+                    >
+                        {/* Time labels column */}
                         <Box
-                            key={hour}
                             sx={{
-                                display: 'grid',
-                                gridTemplateColumns: '100px 1fr',
-                                gap: 2,
+                                width: '100px',
+                                flexShrink: 0,
+                                position: 'relative',
+                                pr: 2,
                             }}
                         >
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'flex-end',
-                                    pr: 2,
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    sx={{ color: theme.palette.text.secondary }}
+                            {hours.map((hour) => (
+                                <Box
+                                    key={hour}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: `${hour * hourHeight}px`,
+                                        left: 0,
+                                        right: 0,
+                                        height: `${hourHeight}px`,
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'flex-end',
+                                        pt: 0.5,
+                                    }}
                                 >
-                                    {dayjs().hour(hour).format('h:00 A')}
-                                </Typography>
-                            </Box>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    backgroundColor: theme.palette.background.paper,
-                                    border: `1px solid ${theme.palette.divider}`,
-                                    '&:hover': {
-                                        backgroundColor: theme.palette.action.hover,
-                                    },
-                                }}
-                            />
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ color: theme.palette.text.secondary }}
+                                    >
+                                        {dayjs().hour(hour).format('h:00 A')}
+                                    </Typography>
+                                </Box>
+                            ))}
                         </Box>
-                    ))}
+
+                        {/* Event container with time slots */}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                position: 'relative',
+                                borderLeft: `2px solid ${theme.palette.divider}`,
+                            }}
+                        >
+                            {/* Hour lines */}
+                            {hours.map((hour) => (
+                                <Box
+                                    key={hour}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: `${hour * hourHeight}px`,
+                                        left: 0,
+                                        right: 0,
+                                        height: `${hourHeight}px`,
+                                        borderTop: `1px solid ${theme.palette.divider}`,
+                                        backgroundColor: theme.palette.background.paper,
+                                        '&:hover': {
+                                            backgroundColor: theme.palette.action.hover,
+                                        },
+                                    }}
+                                />
+                            ))}
+                            {/* Events can be added here with absolute positioning using top/height in pixels */}
+                        </Box>
+                    </Box>
                 </Box>
             </Box>
         );
