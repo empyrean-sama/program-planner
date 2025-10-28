@@ -17,8 +17,16 @@ export class TaskService {
     private tasks: Task[] = [];
 
     constructor() {
-        const userDataPath = app.getPath('userData');
-        this.tasksFilePath = path.join(userDataPath, 'tasks.json');
+        // Use app installation directory instead of userData
+        const appPath = app.getAppPath();
+        const dataDir = path.join(appPath, 'data');
+        
+        // Create data directory if it doesn't exist
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+        
+        this.tasksFilePath = path.join(dataDir, 'tasks.json');
         this.loadTasks();
     }
 
