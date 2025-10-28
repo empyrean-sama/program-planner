@@ -66,29 +66,31 @@ export default function TaskList({ tasks, onTaskClick }: TaskListProps) {
                                     </Box>
                                 }
                                 secondary={
-                                    <Box sx={{ mt: 1 }}>
-                                        <Typography variant="body2" color="text.secondary" noWrap>
+                                    <Box component="span" sx={{ display: 'block', mt: 1 }}>
+                                        <Typography component="span" variant="body2" color="text.secondary" noWrap sx={{ display: 'block' }}>
                                             {task.description}
                                         </Typography>
-                                        <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                                        <Box component="span" sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                                             {task.dueDateTime && (
-                                                <Typography variant="caption" color="text.secondary">
+                                                <Typography component="span" variant="caption" color="text.secondary">
                                                     Due: {dayjs(task.dueDateTime).format('MMM D, YYYY h:mm A')}
                                                 </Typography>
                                             )}
                                             {task.estimatedTime && (
-                                                <Typography variant="caption" color="text.secondary">
+                                                <Typography component="span" variant="caption" color="text.secondary">
                                                     Est: {task.estimatedTime} mins
                                                 </Typography>
                                             )}
                                             {task.elapsedTime > 0 && (
-                                                <Typography variant="caption" color="text.secondary">
+                                                <Typography component="span" variant="caption" color="text.secondary">
                                                     Elapsed: {task.elapsedTime} mins
                                                 </Typography>
                                             )}
                                         </Box>
                                     </Box>
                                 }
+                                primaryTypographyProps={{ component: 'div' }}
+                                secondaryTypographyProps={{ component: 'div' }}
                             />
                         </ListItemButton>
                     </ListItem>
