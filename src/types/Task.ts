@@ -60,6 +60,13 @@ export interface AddScheduleEntryInput {
     endTime: string;
 }
 
+export interface UpdateScheduleEntryInput {
+    taskId: string;
+    entryId: string;
+    startTime: string;
+    endTime: string;
+}
+
 export interface AddCommentInput {
     taskId: string;
     text: string;

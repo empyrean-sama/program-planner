@@ -6,6 +6,7 @@ import {
   CreateTaskInput,
   UpdateTaskInput,
   AddScheduleEntryInput,
+  UpdateScheduleEntryInput,
   AddCommentInput,
 } from './types/Task';
 
@@ -143,6 +144,15 @@ function setupTaskIpcHandlers() {
   ipcMain.handle('task:addScheduleEntry', async (_, input: AddScheduleEntryInput) => {
     try {
       return { success: true, data: taskService.addScheduleEntry(input) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Update schedule entry
+  ipcMain.handle('task:updateScheduleEntry', async (_, input: UpdateScheduleEntryInput) => {
+    try {
+      return { success: true, data: taskService.updateScheduleEntry(input) };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }

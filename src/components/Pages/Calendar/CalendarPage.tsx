@@ -9,6 +9,7 @@ import MonthView from './MonthView';
 import WeekView from './WeekView';
 import DayView from './DayView';
 import CalendarContextMenu from './CalendarContextMenu';
+import AddTaskScheduleDialog from './AddTaskScheduleDialog';
 import { calendarCommands } from './commands/calendarCommands';
 import {
     CalendarContextMenuPosition,
@@ -34,6 +35,9 @@ export default function CalendarPage() {
     const [contextMenu, setContextMenu] = useState<CalendarContextMenuPosition | null>(null);
     const [contextMenuContext, setContextMenuContext] =
         useState<CalendarContextMenuContext | null>(null);
+    const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+    const [scheduleDialogDate, setScheduleDialogDate] = useState<Dayjs | undefined>(undefined);
+    const [scheduleDialogHour, setScheduleDialogHour] = useState<number | undefined>(undefined);
 
     // Restore view and date from navigation state if coming back from task details
     useEffect(() => {
@@ -99,6 +103,25 @@ export default function CalendarPage() {
         setView('day');
     };
 
+    const openScheduleDialog = (date?: Dayjs, hour?: number) => {
+        setScheduleDialogDate(date);
+        setScheduleDialogHour(hour);
+        setScheduleDialogOpen(true);
+        handleCloseContextMenu();
+    };
+
+    const handleScheduleAdded = () => {
+        // Refresh calendar views by re-rendering
+        setScheduleDialogOpen(false);
+        globalState.showToast('Schedule entry added successfully', 'success', 3000);
+    };
+
+    // Expose openScheduleDialog to context for commands
+    const contextWithDialog: CalendarContextMenuContext & { openScheduleDialog: (date?: Dayjs, hour?: number) => void } = {
+        ...contextMenuContext!,
+        openScheduleDialog,
+    };
+
     return (
         <Box
             sx={{
@@ -142,9 +165,17 @@ export default function CalendarPage() {
 
             <CalendarContextMenu
                 position={contextMenu}
-                context={contextMenuContext}
+                context={contextMenuContext ? contextWithDialog : null}
                 commands={calendarCommands}
                 onClose={handleCloseContextMenu}
+            />
+
+            <AddTaskScheduleDialog
+                open={scheduleDialogOpen}
+                initialDate={scheduleDialogDate}
+                initialHour={scheduleDialogHour}
+                onClose={() => setScheduleDialogOpen(false)}
+                onEntryAdded={handleScheduleAdded}
             />
         </Box>
     );

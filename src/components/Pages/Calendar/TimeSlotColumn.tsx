@@ -38,6 +38,8 @@ export default function TimeSlotColumn({
     const navigate = useNavigate();
     const location = useLocation();
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [draggedEvent, setDraggedEvent] = useState<TaskCalendarEvent | null>(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         loadTasks();
@@ -66,6 +68,55 @@ export default function TimeSlotColumn({
         });
     };
 
+    const handleDragStart = (event: React.DragEvent, calendarEvent: TaskCalendarEvent, position: { top: number }) => {
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        setDragOffset({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+        });
+        setDraggedEvent(calendarEvent);
+        event.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = async (event: React.DragEvent) => {
+        event.preventDefault();
+        if (!draggedEvent || !day) return;
+
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        const dropY = event.clientY - rect.top - dragOffset.y;
+        
+        // Calculate new start time based on drop position
+        const hourOffset = dropY / hourHeight;
+        const dayStart = day.startOf('day');
+        const newStartTime = dayStart.add(hourOffset, 'hour');
+        
+        // Calculate duration of original entry
+        const duration = draggedEvent.endTime.diff(draggedEvent.startTime, 'minute');
+        const newEndTime = newStartTime.add(duration, 'minute');
+
+        // Update the schedule entry
+        try {
+            await window.taskAPI.updateScheduleEntry({
+                taskId: draggedEvent.task.id,
+                entryId: draggedEvent.scheduleEntry.id,
+                startTime: newStartTime.toISOString(),
+                endTime: newEndTime.toISOString(),
+            });
+            
+            // Reload tasks to reflect changes
+            await loadTasks();
+        } catch (error) {
+            console.error('Failed to update schedule entry:', error);
+        }
+
+        setDraggedEvent(null);
+    };
+
     return (
         <Box
             sx={{
@@ -74,6 +125,8 @@ export default function TimeSlotColumn({
                 mx: showBorderLeft ? 0.5 : 0,
                 borderLeft: showBorderLeft ? `2px solid ${theme.palette.divider}` : `1px solid ${theme.palette.divider}`,
             }}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
         >
             {/* Hour lines */}
             {hours.map((hour) => (
@@ -124,6 +177,8 @@ export default function TimeSlotColumn({
                     >
                         <Paper
                             elevation={2}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, event, position)}
                             onClick={() => handleTaskClick(event.task.id)}
                             sx={{
                                 position: 'absolute',
@@ -134,7 +189,7 @@ export default function TimeSlotColumn({
                                 backgroundColor: taskColor,
                                 color: '#fff',
                                 p: 0.5,
-                                cursor: 'pointer',
+                                cursor: 'move',
                                 overflow: 'hidden',
                                 borderTop: position.startsBeforeDay ? '2px dashed #fff' : 'none',
                                 borderBottom: position.endsAfterDay ? '2px dashed #fff' : 'none',

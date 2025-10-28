@@ -6,6 +6,7 @@ import {
     CreateTaskInput,
     UpdateTaskInput,
     AddScheduleEntryInput,
+    UpdateScheduleEntryInput,
     AddCommentInput,
     Task,
 } from './types/Task';
@@ -23,6 +24,7 @@ contextBridge.exposeInMainWorld('taskAPI', {
     updateTask: (input: UpdateTaskInput) => ipcRenderer.invoke('task:update', input),
     deleteTask: (id: string) => ipcRenderer.invoke('task:delete', id),
     addScheduleEntry: (input: AddScheduleEntryInput) => ipcRenderer.invoke('task:addScheduleEntry', input),
+    updateScheduleEntry: (input: UpdateScheduleEntryInput) => ipcRenderer.invoke('task:updateScheduleEntry', input),
     removeScheduleEntry: (taskId: string, entryId: string) => 
         ipcRenderer.invoke('task:removeScheduleEntry', taskId, entryId),
     addComment: (input: AddCommentInput) => ipcRenderer.invoke('task:addComment', input),

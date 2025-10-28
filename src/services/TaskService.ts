@@ -7,6 +7,7 @@ import {
     CreateTaskInput,
     UpdateTaskInput,
     AddScheduleEntryInput,
+    UpdateScheduleEntryInput,
     AddCommentInput,
     ScheduleHistoryEntry,
     TaskComment,
@@ -252,6 +253,42 @@ export class TaskService {
         task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
 
         // Apply rules engine after adding schedule entry
+        TaskStateRulesEngine.applyRules(task);
+
+        this.saveTasks();
+        return task;
+    }
+
+    /**
+     * Update a schedule history entry
+     */
+    updateScheduleEntry(input: UpdateScheduleEntryInput): Task {
+        const task = this.getTaskById(input.taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${input.taskId} not found`);
+        }
+
+        const entryIndex = task.scheduleHistory.findIndex(entry => entry.id === input.entryId);
+        
+        if (entryIndex === -1) {
+            throw new Error(`Schedule entry with ID ${input.entryId} not found`);
+        }
+
+        const startTime = new Date(input.startTime);
+        const endTime = new Date(input.endTime);
+        const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)); // in minutes
+
+        task.scheduleHistory[entryIndex] = {
+            ...task.scheduleHistory[entryIndex],
+            startTime: input.startTime,
+            endTime: input.endTime,
+            duration,
+        };
+
+        task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
+
+        // Apply rules engine after updating schedule entry
         TaskStateRulesEngine.applyRules(task);
 
         this.saveTasks();

@@ -3,6 +3,7 @@ import {
     CreateTaskInput,
     UpdateTaskInput,
     AddScheduleEntryInput,
+    UpdateScheduleEntryInput,
     AddCommentInput,
 } from './types/Task';
 
@@ -19,6 +20,7 @@ export interface ITaskAPI {
     updateTask: (input: UpdateTaskInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     deleteTask: (id: string) => Promise<{ success: boolean; error?: string }>;
     addScheduleEntry: (input: AddScheduleEntryInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    updateScheduleEntry: (input: UpdateScheduleEntryInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     removeScheduleEntry: (taskId: string, entryId: string) => Promise<{ success: boolean; data?: Task; error?: string }>;
     addComment: (input: AddCommentInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     getTasksByState: (state: string) => Promise<{ success: boolean; data?: Task[]; error?: string }>;
