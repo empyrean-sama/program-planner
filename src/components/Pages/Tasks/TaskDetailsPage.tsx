@@ -38,6 +38,9 @@ import CommentDialog from './CommentDialog';
 // User can only set these states
 const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
+// Final states that cannot be changed once saved
+const finalStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
+
 interface LocationState {
     from?: string;
     calendarView?: 'month' | 'week' | 'day';
@@ -95,6 +98,11 @@ export default function TaskDetailsPage() {
             task.state !== originalTask.state ||
             task.dueDateTime !== originalTask.dueDateTime
         );
+    };
+
+    const isInFinalState = (): boolean => {
+        if (!originalTask) return false;
+        return finalStates.includes(originalTask.state);
     };
 
     const handleFieldChange = (field: keyof Task, value: any) => {
@@ -213,7 +221,7 @@ export default function TaskDetailsPage() {
                             </Box>
 
                             {/* User State Override - Only show final states */}
-                            <FormControl fullWidth size="small">
+                            <FormControl fullWidth size="small" disabled={isInFinalState()}>
                                 <InputLabel>Set Final State (Optional)</InputLabel>
                                 <Select
                                     value={userSettableStates.includes(task.state) ? task.state : ''}

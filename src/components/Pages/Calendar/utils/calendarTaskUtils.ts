@@ -22,11 +22,15 @@ export interface TaskDeadline {
 
 /**
  * Get all tasks that have deadlines on a specific date
+ * Excludes tasks in final states (Removed, Finished, Deferred, Failed)
  */
 export function getTaskDeadlinesForDate(tasks: Task[], date: Dayjs): TaskDeadline[] {
+    const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
+    
     return tasks
         .filter(task => {
-            if (!task.dueDateTime || task.state === 'Removed') return false;
+            if (!task.dueDateTime) return false;
+            if (finalStates.includes(task.state)) return false;
             const dueDate = dayjs(task.dueDateTime);
             return dueDate.isSame(date, 'day');
         })
@@ -38,13 +42,15 @@ export function getTaskDeadlinesForDate(tasks: Task[], date: Dayjs): TaskDeadlin
 
 /**
  * Get all task schedule entries for a specific date
+ * Excludes tasks in final states (Removed, Finished, Deferred, Failed)
  */
 export function getTaskSchedulesForDate(tasks: Task[], date: Dayjs): TaskCalendarEvent[] {
     const events: TaskCalendarEvent[] = [];
+    const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
     tasks.forEach(task => {
-        // Skip removed tasks
-        if (task.state === 'Removed') return;
+        // Skip tasks in final states
+        if (finalStates.includes(task.state)) return;
 
         task.scheduleHistory.forEach((entry: ScheduleHistoryEntry) => {
             const entryStart = dayjs(entry.startTime);
