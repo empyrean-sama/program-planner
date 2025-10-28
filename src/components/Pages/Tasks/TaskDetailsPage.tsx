@@ -41,6 +41,7 @@ export default function TaskDetailsPage() {
     const { taskId } = useParams<{ taskId: string }>();
     const navigate = useNavigate();
     const [task, setTask] = useState<Task | null>(null);
+    const [originalTask, setOriginalTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -56,8 +57,20 @@ export default function TaskDetailsPage() {
         const result = await window.taskAPI.getTaskById(taskId);
         if (result.success && result.data) {
             setTask(result.data);
+            setOriginalTask(result.data);
         }
         setLoading(false);
+    };
+
+    const hasChanges = (): boolean => {
+        if (!task || !originalTask) return false;
+        
+        return (
+            task.title !== originalTask.title ||
+            task.description !== originalTask.description ||
+            task.state !== originalTask.state ||
+            task.dueDateTime !== originalTask.dueDateTime
+        );
     };
 
     const handleFieldChange = (field: keyof Task, value: any) => {
@@ -78,17 +91,6 @@ export default function TaskDetailsPage() {
 
         if (result.success) {
             loadTask();
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!task) return;
-        
-        if (window.confirm('Are you sure you want to delete this task?')) {
-            const result = await window.taskAPI.deleteTask(task.id);
-            if (result.success) {
-                navigate('/tasks');
-            }
         }
     };
 
@@ -138,10 +140,11 @@ export default function TaskDetailsPage() {
                     <ArrowBackIcon />
                 </IconButton>
                 <Typography variant="h4" sx={{ flex: 1 }}>Task Details</Typography>
-                <Button onClick={handleDelete} color="error" variant="outlined">
-                    Delete Task
-                </Button>
-                <Button onClick={handleSave} variant="contained">
+                <Button 
+                    onClick={handleSave} 
+                    variant="contained"
+                    disabled={!hasChanges()}
+                >
                     Save Changes
                 </Button>
             </Box>

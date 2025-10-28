@@ -162,17 +162,20 @@ export class TaskService {
 
     /**
      * Delete a task
+     * NOTE: Tasks cannot be deleted once created as per requirements.
+     * This method is kept for potential future use but should not be called.
      */
     deleteTask(id: string): boolean {
-        const initialLength = this.tasks.length;
-        this.tasks = this.tasks.filter(task => task.id !== id);
+        // Commenting out delete functionality - tasks cannot be deleted
+        // const initialLength = this.tasks.length;
+        // this.tasks = this.tasks.filter(task => task.id !== id);
+        // 
+        // if (this.tasks.length < initialLength) {
+        //     this.saveTasks();
+        //     return true;
+        // }
         
-        if (this.tasks.length < initialLength) {
-            this.saveTasks();
-            return true;
-        }
-        
-        return false;
+        throw new Error('Tasks cannot be deleted once created');
     }
 
     /**
