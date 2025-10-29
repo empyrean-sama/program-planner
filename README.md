@@ -2,21 +2,23 @@
 
 ## 📚 Documentation Index
 
-Welcome to the Program Planner documentation. This index helps you find the right documentation for your needs.
+Welcome to the Program Planner documentation. All documentation is now centralized in the **[docs/](./docs/)** folder.
+
+**👉 [Browse all documentation in docs/INDEX.md](./docs/INDEX.md)**
 
 ---
 
 ## Quick Start
 
-- **New Developer?** Start with [DEVELOPER.md](./DEVELOPER.md)
-- **Want to understand tasks?** Read [TASK_FEATURE_README.md](./TASK_FEATURE_README.md)
-- **Using the calendar?** See [CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md)
+- **New Developer?** Start with [docs/DEVELOPER.md](./docs/DEVELOPER.md)
+- **Want to understand tasks?** Read [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md)
+- **Using the calendar?** See [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md)
 
 ---
 
 ## Core Documentation
 
-### [DEVELOPER.md](./DEVELOPER.md) - 🎯 Main Developer Guide
+### [docs/DEVELOPER.md](./docs/DEVELOPER.md) - 🎯 Main Developer Guide
 **Start here for complete project overview**
 
 Contents:
@@ -39,7 +41,7 @@ Contents:
 
 ## Feature Documentation
 
-### [TASK_FEATURE_README.md](./TASK_FEATURE_README.md) - Task Management System
+### [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md) - Task Management System
 **Complete guide to the task management features**
 
 Contents:
@@ -54,7 +56,7 @@ Contents:
 
 ---
 
-### [TASK_FILTERING_README.md](./TASK_FILTERING_README.md) - Task Filtering & Search
+### [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md) - Task Filtering & Search
 **Advanced filtering and search capabilities**
 
 Contents:
@@ -69,7 +71,7 @@ Contents:
 
 ---
 
-### [CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md) - Calendar Integration
+### [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md) - Calendar Integration
 **How tasks integrate with the calendar system**
 
 Contents:
@@ -86,7 +88,7 @@ Contents:
 
 ## Technical Documentation
 
-### [TASK_STATE_RULES_ENGINE.md](./TASK_STATE_RULES_ENGINE.md) - State Rules Engine
+### [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md) - State Rules Engine
 **Business logic for task state transitions**
 
 Contents:
@@ -100,7 +102,7 @@ Contents:
 
 ---
 
-### [TASK_CARD_RULES_ENGINE.md](./TASK_CARD_RULES_ENGINE.md) - Visual Rules Engine
+### [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md) - Visual Rules Engine
 **Rules for task card appearance and warnings**
 
 Contents:
@@ -115,7 +117,7 @@ Contents:
 
 ---
 
-### [TASK_CARD_RULES_QUICK_REFERENCE.md](./TASK_CARD_RULES_QUICK_REFERENCE.md) - Quick Reference
+### [docs/TASK_CARD_RULES_QUICK_REFERENCE.md](./docs/TASK_CARD_RULES_QUICK_REFERENCE.md) - Quick Reference
 **Quick lookup for task card rules**
 
 Contents:
@@ -131,7 +133,7 @@ Contents:
 
 ### Calendar Components
 
-#### [CONTEXT_MENU_README.md](./src/components/Pages/Calendar/CONTEXT_MENU_README.md) - Context Menu System
+#### [docs/CONTEXT_MENU_README.md](./docs/CONTEXT_MENU_README.md) - Context Menu System
 **Right-click menus in calendar views**
 
 Contents:
@@ -142,6 +144,24 @@ Contents:
 - Extensibility guide
 
 **Audience**: Developers working on calendar interactions
+
+---
+
+## Refactoring Documentation
+
+### [docs/REFACTORING_SUMMARY.md](./docs/REFACTORING_SUMMARY.md) - Recent Improvements
+**Complete summary of October 2025 refactoring**
+
+Contents:
+- Performance optimizations
+- Loading skeletons
+- Animation system
+- Z-index management
+- Error handling
+- Documentation improvements
+- Migration guide
+
+**Audience**: All developers
 
 ---
 
@@ -164,32 +184,32 @@ src/
 ## Documentation by Role
 
 ### For New Developers
-1. Read [DEVELOPER.md](./DEVELOPER.md) - Complete overview
-2. Set up development environment (see DEVELOPER.md § Getting Started)
-3. Review [Project Structure](./DEVELOPER.md#project-structure)
-4. Understand [Architecture](./DEVELOPER.md#architecture)
-5. Review [Coding Standards](./DEVELOPER.md#coding-standards)
+1. Read [docs/DEVELOPER.md](./docs/DEVELOPER.md) - Complete overview
+2. Set up development environment (see docs/DEVELOPER.md § Getting Started)
+3. Review [Project Structure](./docs/DEVELOPER.md#project-structure)
+4. Understand [Architecture](./docs/DEVELOPER.md#architecture)
+5. Review [Coding Standards](./docs/DEVELOPER.md#coding-standards)
 
 ### For Feature Development
-1. **Task Features**: [TASK_FEATURE_README.md](./TASK_FEATURE_README.md)
-2. **Calendar Features**: [CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md)
-3. **Filtering**: [TASK_FILTERING_README.md](./TASK_FILTERING_README.md)
-4. **Rules Engines**: [TASK_STATE_RULES_ENGINE.md](./TASK_STATE_RULES_ENGINE.md), [TASK_CARD_RULES_ENGINE.md](./TASK_CARD_RULES_ENGINE.md)
+1. **Task Features**: [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md)
+2. **Calendar Features**: [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md)
+3. **Filtering**: [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md)
+4. **Rules Engines**: [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md), [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md)
 
 ### For UI/UX Work
-1. [Styling & Theming](./DEVELOPER.md#styling--theming)
-2. [Task Card Rules](./TASK_CARD_RULES_ENGINE.md)
-3. [Component Documentation](./DEVELOPER.md#component-documentation)
-4. [Animation Utils](./DEVELOPER.md#animationsts)
+1. [Styling & Theming](./docs/DEVELOPER.md#styling--theming)
+2. [Task Card Rules](./docs/TASK_CARD_RULES_ENGINE.md)
+3. [Component Documentation](./docs/DEVELOPER.md#component-documentation)
+4. [Animation Utils](./docs/DEVELOPER.md#animationsts)
 
 ### For Performance Optimization
-1. [Performance Optimizations](./DEVELOPER.md#performance-optimizations)
-2. [State Management](./DEVELOPER.md#state-management)
-3. Review component patterns in DEVELOPER.md
+1. [Performance Optimizations](./docs/DEVELOPER.md#performance-optimizations)
+2. [State Management](./docs/DEVELOPER.md#state-management)
+3. Review component patterns in docs/DEVELOPER.md
 
 ### For Bug Fixing
-1. [Troubleshooting](./DEVELOPER.md#troubleshooting)
-2. [Error Handling](./DEVELOPER.md#error-handling)
+1. [Troubleshooting](./docs/DEVELOPER.md#troubleshooting)
+2. [Error Handling](./docs/DEVELOPER.md#error-handling)
 3. Check relevant feature documentation
 
 ---
@@ -228,17 +248,18 @@ src/
 
 | Need | Documentation |
 |------|---------------|
-| Project setup | [DEVELOPER.md](./DEVELOPER.md#getting-started) |
-| Architecture overview | [DEVELOPER.md](./DEVELOPER.md#architecture) |
-| Component list | [DEVELOPER.md](./DEVELOPER.md#component-documentation) |
-| Task structure | [TASK_FEATURE_README.md](./TASK_FEATURE_README.md) |
-| State transitions | [TASK_STATE_RULES_ENGINE.md](./TASK_STATE_RULES_ENGINE.md) |
-| Visual rules | [TASK_CARD_RULES_ENGINE.md](./TASK_CARD_RULES_ENGINE.md) |
-| Calendar integration | [CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md) |
-| Filtering/Search | [TASK_FILTERING_README.md](./TASK_FILTERING_README.md) |
-| Context menus | [CONTEXT_MENU_README.md](./src/components/Pages/Calendar/CONTEXT_MENU_README.md) |
-| Coding standards | [DEVELOPER.md](./DEVELOPER.md#coding-standards) |
-| Troubleshooting | [DEVELOPER.md](./DEVELOPER.md#troubleshooting) |
+| Project setup | [docs/DEVELOPER.md](./docs/DEVELOPER.md#getting-started) |
+| Architecture overview | [docs/DEVELOPER.md](./docs/DEVELOPER.md#architecture) |
+| Component list | [docs/DEVELOPER.md](./docs/DEVELOPER.md#component-documentation) |
+| Task structure | [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md) |
+| State transitions | [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md) |
+| Visual rules | [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md) |
+| Calendar integration | [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md) |
+| Filtering/Search | [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md) |
+| Context menus | [docs/CONTEXT_MENU_README.md](./docs/CONTEXT_MENU_README.md) |
+| Coding standards | [docs/DEVELOPER.md](./docs/DEVELOPER.md#coding-standards) |
+| Troubleshooting | [docs/DEVELOPER.md](./docs/DEVELOPER.md#troubleshooting) |
+| Recent improvements | [docs/REFACTORING_SUMMARY.md](./docs/REFACTORING_SUMMARY.md) |
 
 ---
 
@@ -252,7 +273,7 @@ src/
 
 ---
 
-**Maintained by**: [Your Team/Name]  
+**Maintained by**: Sriveer Neerukonda 
 **Last Updated**: October 29, 2025  
 **Version**: 1.0.0
 
@@ -260,7 +281,7 @@ src/
 
 ## 📝 Need Help?
 
-- **Can't find what you need?** Check [DEVELOPER.md](./DEVELOPER.md) - it's the most comprehensive guide
+- **Can't find what you need?** Check [docs/DEVELOPER.md](./docs/DEVELOPER.md) - it's the most comprehensive guide
 - **Found an error?** Please report it or submit a PR
 - **Documentation unclear?** Open an issue with suggestions
 

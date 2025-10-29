@@ -434,12 +434,12 @@ This refactoring focused on:
 
 ## 📖 Documentation Quick Links
 
-- [DEVELOPER.md](./DEVELOPER.md) - Main developer guide
-- [README.md](./README.md) - Documentation index
-- [TASK_FEATURE_README.md](./TASK_FEATURE_README.md) - Task features
-- [CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md) - Calendar integration
-- [TASK_STATE_RULES_ENGINE.md](./TASK_STATE_RULES_ENGINE.md) - State rules
-- [TASK_CARD_RULES_ENGINE.md](./TASK_CARD_RULES_ENGINE.md) - Visual rules
+- [docs/DEVELOPER.md](./DEVELOPER.md) - Main developer guide
+- [README.md](../README.md) - Documentation index
+- [docs/TASK_FEATURE_README.md](./TASK_FEATURE_README.md) - Task features
+- [docs/CALENDAR_TASK_INTEGRATION.md](./CALENDAR_TASK_INTEGRATION.md) - Calendar integration
+- [docs/TASK_STATE_RULES_ENGINE.md](./TASK_STATE_RULES_ENGINE.md) - State rules
+- [docs/TASK_CARD_RULES_ENGINE.md](./TASK_CARD_RULES_ENGINE.md) - Visual rules
 
 ---
 
