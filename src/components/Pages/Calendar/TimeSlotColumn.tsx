@@ -28,7 +28,7 @@ interface TimeSlotColumnProps {
     onTasksUpdate?: () => void; // Callback to trigger parent refresh
 }
 
-export default function TimeSlotColumn({ 
+function TimeSlotColumn({ 
     hours, 
     hourHeight,
     showBorderLeft = true,
@@ -182,6 +182,12 @@ export default function TimeSlotColumn({
         }
     };
 
+    const handleDragEnd = () => {
+        // Clear drag state when drag is cancelled or ends
+        setDraggedEvent(null);
+        setDragPreview(null);
+    };
+
     // Resizing handlers
     const handleResizeMouseDown = (event: React.MouseEvent, calendarEvent: TaskCalendarEvent, type: 'top' | 'bottom') => {
         event.preventDefault();
@@ -306,11 +312,19 @@ export default function TimeSlotColumn({
         if (resizingEvent) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
         }
+
+        // Always clean up event listeners and state on unmount or when resizing stops
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            // Clean up state when unmounting
+            if (!resizingEvent) {
+                setResizingEvent(null);
+                setResizeStart(null);
+                setResizePreview(null);
+            }
+        };
     }, [resizingEvent, resizeStart, day, hourHeight, onTasksUpdate]);
 
     return (
@@ -324,6 +338,8 @@ export default function TimeSlotColumn({
             }}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
+            onDragEnd={handleDragEnd}
+            onDragLeave={handleDragEnd}
         >
             {/* Hour lines */}
             {hours.map((hour) => (
@@ -890,3 +906,19 @@ export default function TimeSlotColumn({
         </Box>
     );
 }
+
+// Memoize component to prevent unnecessary re-renders
+export default React.memo(TimeSlotColumn, (prevProps, nextProps) => {
+    // Custom comparison function for performance optimization
+    return (
+        prevProps.day?.isSame(nextProps.day, 'day') &&
+        prevProps.hourHeight === nextProps.hourHeight &&
+        prevProps.showBorderLeft === nextProps.showBorderLeft &&
+        prevProps.currentView === nextProps.currentView &&
+        prevProps.currentDate?.isSame(nextProps.currentDate, 'day') &&
+        prevProps.tasks === nextProps.tasks && // Reference equality check
+        prevProps.onContextMenu === nextProps.onContextMenu &&
+        prevProps.onTasksUpdate === nextProps.onTasksUpdate &&
+        JSON.stringify(prevProps.hours) === JSON.stringify(nextProps.hours)
+    );
+});

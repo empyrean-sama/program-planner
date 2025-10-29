@@ -13,6 +13,7 @@ import {
     alpha,
     TextField,
     InputAdornment,
+    CircularProgress,
 } from '@mui/material';
 import {
     Close as CloseIcon,
@@ -57,6 +58,8 @@ export default function AddTaskScheduleDialog({
     const [startTime, setStartTime] = useState<Dayjs | null>(null);
     const [endTime, setEndTime] = useState<Dayjs | null>(null);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingTasks, setIsLoadingTasks] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -84,12 +87,17 @@ export default function AddTaskScheduleDialog({
     }, [open, initialDate, initialHour, initialTaskId]);
 
     const loadTasks = async () => {
-        const result = await window.taskAPI.getAllTasks();
-        if (result.success && result.data) {
-            // Filter to only show tasks not in final states
-            const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
-            const activeTasks = result.data.filter(task => !finalStates.includes(task.state));
-            setTasks(activeTasks);
+        setIsLoadingTasks(true);
+        try {
+            const result = await window.taskAPI.getAllTasks();
+            if (result.success && result.data) {
+                // Filter to only show tasks not in final states
+                const finalStates = ['Removed', 'Finished', 'Deferred', 'Failed'];
+                const activeTasks = result.data.filter(task => !finalStates.includes(task.state));
+                setTasks(activeTasks);
+            }
+        } finally {
+            setIsLoadingTasks(false);
         }
     };
 
@@ -126,17 +134,26 @@ export default function AddTaskScheduleDialog({
             return;
         }
 
-        const result = await window.taskAPI.addScheduleEntry({
-            taskId: selectedTaskId,
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-        });
+        setIsSubmitting(true);
+        setError('');
+        
+        try {
+            const result = await window.taskAPI.addScheduleEntry({
+                taskId: selectedTaskId,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+            });
 
-        if (result.success) {
-            handleClose();
-            onEntryAdded();
-        } else {
-            setError(result.error || 'Failed to add schedule entry');
+            if (result.success) {
+                handleClose();
+                onEntryAdded();
+            } else {
+                setError(result.error || 'Failed to add schedule entry');
+            }
+        } catch (err) {
+            setError('An unexpected error occurred');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -531,7 +548,7 @@ export default function AddTaskScheduleDialog({
                 <Button 
                     onClick={handleAdd} 
                     variant="contained"
-                    disabled={!selectedTaskId || !startTime || !endTime}
+                    disabled={!selectedTaskId || !startTime || !endTime || isSubmitting}
                     sx={{ 
                         minWidth: 120,
                         textTransform: 'none',
@@ -539,7 +556,14 @@ export default function AddTaskScheduleDialog({
                         boxShadow: 2,
                     }}
                 >
-                    Add Schedule
+                    {isSubmitting ? (
+                        <>
+                            <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                            Adding...
+                        </>
+                    ) : (
+                        'Add Schedule'
+                    )}
                 </Button>
             </DialogActions>
         </Dialog>

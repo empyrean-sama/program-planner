@@ -9,6 +9,7 @@ import {
     IconButton,
     Stack,
     InputAdornment,
+    CircularProgress,
 } from '@mui/material';
 import {
     Close as CloseIcon,
@@ -47,6 +48,7 @@ export default function EditScheduleDialog({
     const [startTime, setStartTime] = useState<Dayjs | null>(null);
     const [endTime, setEndTime] = useState<Dayjs | null>(null);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (open && initialStartTime && initialEndTime) {
@@ -78,18 +80,27 @@ export default function EditScheduleDialog({
             return;
         }
 
-        const result = await window.taskAPI.updateScheduleEntry({
-            taskId,
-            entryId,
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-        });
+        setIsSubmitting(true);
+        setError('');
 
-        if (result.success) {
-            handleClose();
-            onEntryUpdated();
-        } else {
-            setError(result.error || 'Failed to update schedule entry');
+        try {
+            const result = await window.taskAPI.updateScheduleEntry({
+                taskId,
+                entryId,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+            });
+
+            if (result.success) {
+                handleClose();
+                onEntryUpdated();
+            } else {
+                setError(result.error || 'Failed to update schedule entry');
+            }
+        } catch (err) {
+            setError('An unexpected error occurred');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -268,9 +279,16 @@ export default function EditScheduleDialog({
                     <Button 
                         onClick={handleUpdate} 
                         variant="contained"
-                        disabled={!startTime || !endTime || !!error}
+                        disabled={!startTime || !endTime || !!error || isSubmitting}
                     >
-                        Update Schedule
+                        {isSubmitting ? (
+                            <>
+                                <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                                Updating...
+                            </>
+                        ) : (
+                            'Update Schedule'
+                        )}
                     </Button>
                 </DialogActions>
             </Dialog>

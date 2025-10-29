@@ -15,13 +15,14 @@ import { Task } from '../../../types/Task';
 import dayjs from 'dayjs';
 import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
 import { transitions } from '../../../utils/animations';
+import { TasksEmptyState } from '../../Common/EmptyState';
 
 interface TaskCardProps {
     task: Task;
     onClick: (task: Task) => void;
 }
 
-export default function TaskCard({ task, onClick }: TaskCardProps) {
+function TaskCard({ task, onClick }: TaskCardProps) {
     // Get appearance from rules engine
     const appearance = getTaskCardAppearance(task);
     const warningMessages = getWarningMessages(appearance.warnings);
@@ -259,6 +260,22 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
     );
 }
 
+// Memoize TaskCard to prevent re-renders when props don't change
+const MemoizedTaskCard = React.memo(TaskCard, (prevProps, nextProps) => {
+    // Deep comparison of task object
+    return (
+        prevProps.task.id === nextProps.task.id &&
+        prevProps.task.title === nextProps.task.title &&
+        prevProps.task.state === nextProps.task.state &&
+        prevProps.task.estimatedTime === nextProps.task.estimatedTime &&
+        prevProps.task.elapsedTime === nextProps.task.elapsedTime &&
+        prevProps.task.dueDateTime === nextProps.task.dueDateTime &&
+        prevProps.onClick === nextProps.onClick
+    );
+});
+
+export default MemoizedTaskCard;
+
 interface TaskCardGridProps {
     tasks: Task[];
     onTaskClick: (task: Task) => void;
@@ -266,13 +283,7 @@ interface TaskCardGridProps {
 
 export function TaskCardGrid({ tasks, onTaskClick }: TaskCardGridProps) {
     if (tasks.length === 0) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '300px' }}>
-                <Typography variant="h6" color="text.secondary">
-                    No tasks found
-                </Typography>
-            </Box>
-        );
+        return <TasksEmptyState />;
     }
 
     return (
