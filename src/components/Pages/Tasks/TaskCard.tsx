@@ -29,9 +29,9 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
     return (
         <Card 
             sx={{ 
-                height: '100%', 
                 display: 'flex', 
                 flexDirection: 'column',
+                breakInside: 'avoid', // Prevent breaking in masonry layout
                 ...appearance.styles.backgroundColor && { backgroundColor: appearance.styles.backgroundColor },
                 ...appearance.styles.backgroundImage && { backgroundImage: appearance.styles.backgroundImage },
                 ...appearance.styles.opacity && { opacity: appearance.styles.opacity },
@@ -43,13 +43,12 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
             <CardActionArea 
                 onClick={() => onClick(task)} 
                 sx={{ 
-                    height: '100%', 
                     display: 'flex', 
                     flexDirection: 'column', 
                     alignItems: 'stretch',
                 }}
             >
-                <CardContent sx={{ flex: 1, width: '100%' }}>
+                <CardContent sx={{ width: '100%' }}>
                     {/* Title and State */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, gap: 1 }}>
                         <Typography 
@@ -253,14 +252,18 @@ export function TaskCardGrid({ tasks, onTaskClick }: TaskCardGridProps) {
 
     return (
         <Box sx={{ 
-            display: 'grid',
-            gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)',
-                lg: 'repeat(4, 1fr)',
+            columns: {
+                xs: '1 auto',
+                sm: '2 300px',
+                md: '3 300px',
+                lg: '4 300px',
             },
-            gap: 2,
+            columnGap: 2,
+            '& > *': {
+                marginBottom: 2,
+                display: 'inline-block',
+                width: '100%',
+            }
         }}>
             {tasks.map((task) => (
                 <TaskCard key={task.id} task={task} onClick={onTaskClick} />
