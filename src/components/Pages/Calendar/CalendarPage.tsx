@@ -152,16 +152,33 @@ export default function CalendarPage() {
         }, 200);
     };
 
+    const handleScheduleDeleted = async (taskId: string, entryId: string) => {
+        try {
+            const result = await window.taskAPI.removeScheduleEntry(taskId, entryId);
+            if (result.success) {
+                setRefreshKey(prev => prev + 1);
+                handleCloseContextMenu();
+                globalState.showToast('Schedule entry deleted', 'success', 3000);
+            } else {
+                globalState.showToast(result.error || 'Failed to delete schedule entry', 'error', 3000);
+            }
+        } catch (error) {
+            globalState.showToast('Failed to delete schedule entry', 'error', 3000);
+        }
+    };
+
     // Expose openScheduleDialog, openQuickCreateDialog, navigate, and location to context for commands
     const contextWithDialog: CalendarContextMenuContext & { 
         openScheduleDialog: (date?: Dayjs, hour?: number) => void;
         openQuickCreateDialog: (date?: Dayjs, hour?: number) => void;
+        onScheduleDeleted: (taskId: string, entryId: string) => Promise<void>;
         navigate: ReturnType<typeof useNavigate>;
         location: ReturnType<typeof useLocation>;
     } = {
         ...contextMenuContext!,
         openScheduleDialog,
         openQuickCreateDialog,
+        onScheduleDeleted: handleScheduleDeleted,
         navigate,
         location,
     };

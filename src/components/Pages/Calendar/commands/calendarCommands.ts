@@ -2,6 +2,7 @@ import { CalendarContextMenuCommand } from '../types/CalendarContextMenuTypes';
 import EventIcon from '@mui/icons-material/Event';
 import InfoIcon from '@mui/icons-material/Info';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import DeleteIcon from '@mui/icons-material/Delete';
 import React from 'react';
 
 /**
@@ -25,6 +26,18 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
             }
         },
         disabled: (context: any) => !context.task, // Only enabled when a task is selected
+    },
+    {
+        id: 'delete-schedule-entry',
+        label: 'Delete Occurrence',
+        icon: React.createElement(DeleteIcon),
+        action: async (context: any) => {
+            if (context.task && context.scheduleEntryId && context.onScheduleDeleted) {
+                // Call the delete handler passed in context
+                await context.onScheduleDeleted(context.task.id, context.scheduleEntryId);
+            }
+        },
+        disabled: (context: any) => !context.task || !context.scheduleEntryId, // Only enabled when on a scheduled task
     },
     {
         id: 'divider-1',
