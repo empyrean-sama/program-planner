@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { TaskService } from './services/TaskService';
+import { StoryService } from './services/StoryService';
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -11,14 +12,21 @@ import {
   AddRelationshipInput,
   RemoveRelationshipInput,
 } from './types/Task';
+import {
+  CreateStoryInput,
+  UpdateStoryInput,
+  AddTaskToStoryInput,
+  RemoveTaskFromStoryInput,
+} from './types/Story';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
-// Initialize TaskService
+// Initialize services
 let taskService: TaskService;
+let storyService: StoryService;
 
 const createWindow = () => {
   // Create the browser window.
@@ -66,7 +74,13 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   taskService = new TaskService();
+  storyService = new StoryService(() => taskService.getAllTasksInternal());
+  
+  // Set up bidirectional communication
+  taskService.setStoryStateCallback(() => storyService.recalculateStoryStates());
+  
   setupTaskIpcHandlers();
+  setupStoryIpcHandlers();
   createWindow();
 });
 
@@ -236,6 +250,128 @@ function setupTaskIpcHandlers() {
   ipcMain.handle('task:getDependencyGraph', async (_, taskId: string) => {
     try {
       return { success: true, data: taskService.getTaskDependencyGraph(taskId) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Set task story
+  ipcMain.handle('task:setStory', async (_, taskId: string, storyId: string | undefined) => {
+    try {
+      return { success: true, data: taskService.setTaskStory(taskId, storyId) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+}
+
+// Setup Story IPC handlers
+function setupStoryIpcHandlers() {
+  // Create story
+  ipcMain.handle('story:create', async (_, input: CreateStoryInput) => {
+    try {
+      return { success: true, data: storyService.createStory(input) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Get all stories
+  ipcMain.handle('story:getAll', async () => {
+    try {
+      return { success: true, data: storyService.getAllStories() };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Get story by ID
+  ipcMain.handle('story:getById', async (_, id: string) => {
+    try {
+      const story = storyService.getStoryById(id);
+      if (!story) {
+        return { success: false, error: 'Story not found' };
+      }
+      return { success: true, data: story };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Update story
+  ipcMain.handle('story:update', async (_, input: UpdateStoryInput) => {
+    try {
+      return { success: true, data: storyService.updateStory(input) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Delete story
+  ipcMain.handle('story:delete', async (_, id: string) => {
+    try {
+      const result = storyService.deleteStory(id);
+      return { success: result, error: result ? undefined : 'Story not found' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Add task to story
+  ipcMain.handle('story:addTask', async (_, input: AddTaskToStoryInput) => {
+    try {
+      const story = await storyService.addTaskToStory(input);
+      // Update the task's storyId
+      await taskService.setTaskStory(input.taskId, input.storyId);
+      return { success: true, data: story };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Remove task from story
+  ipcMain.handle('story:removeTask', async (_, input: RemoveTaskFromStoryInput) => {
+    try {
+      const story = await storyService.removeTaskFromStory(input);
+      // Remove the task's storyId
+      await taskService.setTaskStory(input.taskId, undefined);
+      return { success: true, data: story };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Get story tasks
+  ipcMain.handle('story:getTasks', async (_, storyId: string) => {
+    try {
+      return { success: true, data: storyService.getStoryTasks(storyId) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Export stories
+  ipcMain.handle('story:exportData', async () => {
+    try {
+      return storyService.exportData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Import stories
+  ipcMain.handle('story:importData', async () => {
+    try {
+      return storyService.importData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Destroy all stories
+  ipcMain.handle('story:destroyAllData', async () => {
+    try {
+      return storyService.destroyAllData();
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }

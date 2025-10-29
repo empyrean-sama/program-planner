@@ -12,6 +12,13 @@ import {
     RemoveRelationshipInput,
     Task,
 } from './types/Task';
+import {
+    CreateStoryInput,
+    UpdateStoryInput,
+    AddTaskToStoryInput,
+    RemoveTaskFromStoryInput,
+    Story,
+} from './types/Story';
 
 contextBridge.exposeInMainWorld('electron', {
     minimize: () => ipcRenderer.send('window-minimize'),
@@ -37,4 +44,19 @@ contextBridge.exposeInMainWorld('taskAPI', {
     addRelationship: (input: AddRelationshipInput) => ipcRenderer.invoke('task:addRelationship', input),
     removeRelationship: (input: RemoveRelationshipInput) => ipcRenderer.invoke('task:removeRelationship', input),
     getDependencyGraph: (taskId: string) => ipcRenderer.invoke('task:getDependencyGraph', taskId),
+    setStory: (taskId: string, storyId: string | undefined) => ipcRenderer.invoke('task:setStory', taskId, storyId),
+});
+
+contextBridge.exposeInMainWorld('storyAPI', {
+    createStory: (input: CreateStoryInput) => ipcRenderer.invoke('story:create', input),
+    getAllStories: () => ipcRenderer.invoke('story:getAll'),
+    getStoryById: (id: string) => ipcRenderer.invoke('story:getById', id),
+    updateStory: (input: UpdateStoryInput) => ipcRenderer.invoke('story:update', input),
+    deleteStory: (id: string) => ipcRenderer.invoke('story:delete', id),
+    addTask: (input: AddTaskToStoryInput) => ipcRenderer.invoke('story:addTask', input),
+    removeTask: (input: RemoveTaskFromStoryInput) => ipcRenderer.invoke('story:removeTask', input),
+    getTasks: (storyId: string) => ipcRenderer.invoke('story:getTasks', storyId),
+    exportData: () => ipcRenderer.invoke('story:exportData'),
+    importData: () => ipcRenderer.invoke('story:importData'),
+    destroyAllData: () => ipcRenderer.invoke('story:destroyAllData'),
 });

@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import HomeTile from './HomeTile';
 import TextBubble from './TextBubble';
 
@@ -44,6 +45,18 @@ export default function HomePage() {
                         color={theme.palette.secondary.main}
                         buttonColor='secondary'
                     />
+                </Stack>
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 4 }}>
+                    <HomeTile 
+                        title="Stories"
+                        description="Group related tasks into user stories"
+                        icon={AutoStoriesIcon}
+                        link="/stories"
+                        buttonText="View Stories"
+                        color={theme.palette.success.main}
+                        buttonColor='success'
+                    />
                     <HomeTile 
                         title="Metrics"
                         description="Analyze your productivity and progress"
@@ -54,7 +67,10 @@ export default function HomePage() {
                         buttonColor='info'
                     />
                 </Stack>
-                <TextBubble title='Getting Started' content='To get started with Program Planner, navigate to the Calendar or Tasks sections using the tiles above. You can add events to your calendar and create tasks to keep track of your to-dos. Explore the settings to customize your experience.' />
+                <TextBubble 
+                    title='Getting Started' 
+                    content='Welcome to Program Planner! Start by creating tasks in the Tasks section, or organize them into Stories for better project management. Use the Calendar to schedule your work, and check Metrics to track your productivity. Stories help you group related tasks together and visualize progress with burndown charts.' 
+                />
             </Container>
         </Box>
     );

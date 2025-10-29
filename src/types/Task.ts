@@ -47,6 +47,9 @@ export interface Task {
     
     // Relationships (predecessors and successors)
     relationships: TaskRelationship[];
+    
+    // Story reference (optional - task may or may not be part of a story)
+    storyId?: string; // UUID of the story this task belongs to
 }
 
 export interface CreateTaskInput {
@@ -54,6 +57,7 @@ export interface CreateTaskInput {
     description: string;
     dueDateTime?: string;
     estimatedTime?: number;
+    storyId?: string; // Optional story to add task to
 }
 
 export interface UpdateTaskInput {

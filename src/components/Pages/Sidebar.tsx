@@ -14,6 +14,7 @@ import {
 import HomeIcon from '@mui/icons-material/Home';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AppIcon from '../Common/AppIcon';
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar' },
     { text: 'Tasks', icon: <AssignmentIcon />, path: '/tasks' },
+    { text: 'Stories', icon: <AutoStoriesIcon />, path: '/stories' },
     { text: 'Metrics', icon: <BarChartIcon />, path: '/metrics' },
 ];
 

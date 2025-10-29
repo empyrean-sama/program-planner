@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -7,12 +7,17 @@ import {
     Button,
     TextField,
     Box,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { CreateTaskInput } from '../../../types/Task';
+import { Story } from '../../../types/Story';
 import MarkdownTextarea from '../../Common/MarkdownTextarea';
 
 interface TaskDialogProps {
@@ -26,13 +31,34 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
     const [description, setDescription] = useState('');
     const [dueDateTime, setDueDateTime] = useState<Dayjs | null>(null);
     const [estimatedTime, setEstimatedTime] = useState('');
+    const [storyId, setStoryId] = useState('');
+    const [stories, setStories] = useState<Story[]>([]);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        if (open) {
+            loadStories();
+        }
+    }, [open]);
+
+    const loadStories = async () => {
+        try {
+            const result = await window.storyAPI.getAllStories();
+            if (result.success && result.data) {
+                // Only show Filed and Running stories
+                setStories(result.data.filter(s => s.state !== 'Finished'));
+            }
+        } catch (error) {
+            console.error('Failed to load stories', error);
+        }
+    };
 
     const handleClose = () => {
         setTitle('');
         setDescription('');
         setDueDateTime(null);
         setEstimatedTime('');
+        setStoryId('');
         setErrors({});
         onClose();
     };
@@ -66,6 +92,7 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
             description: description.trim(),
             dueDateTime: dueDateTime?.toISOString(),
             estimatedTime: estimatedTime ? Number(estimatedTime) : undefined,
+            storyId: storyId || undefined,
         };
 
         const result = await window.taskAPI.createTask(input);
@@ -125,6 +152,24 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
                         helperText={errors.estimatedTime || 'This cannot be changed after creation'}
                         InputProps={{ inputProps: { min: 0 } }}
                     />
+
+                    <FormControl fullWidth>
+                        <InputLabel>Story (Optional)</InputLabel>
+                        <Select
+                            value={storyId}
+                            label="Story (Optional)"
+                            onChange={(e) => setStoryId(e.target.value)}
+                        >
+                            <MenuItem value="">
+                                <em>None</em>
+                            </MenuItem>
+                            {stories.map((story) => (
+                                <MenuItem key={story.id} value={story.id}>
+                                    {story.title} ({story.state})
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
                     {errors.general && (
                         <Box sx={{ color: 'error.main', mt: 1 }}>

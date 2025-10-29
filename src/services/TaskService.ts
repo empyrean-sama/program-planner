@@ -20,6 +20,7 @@ import { TaskStateRulesEngine } from './TaskStateRulesEngine';
 export class TaskService {
     private tasksFilePath: string;
     private tasks: Task[] = [];
+    private storyStateCallback?: () => void;
 
     constructor() {
         // Use userData directory for storing application data
@@ -33,6 +34,20 @@ export class TaskService {
         
         this.tasksFilePath = path.join(dataDir, 'tasks.json');
         this.loadTasks();
+    }
+
+    /**
+     * Set callback to recalculate story states when tasks change
+     */
+    setStoryStateCallback(callback: () => void): void {
+        this.storyStateCallback = callback;
+    }
+
+    /**
+     * Get all tasks (for StoryService)
+     */
+    getAllTasksInternal(): Task[] {
+        return this.tasks;
     }
 
     private loadTasks(): void {
@@ -64,6 +79,10 @@ export class TaskService {
     private saveTasks(): void {
         try {
             fs.writeFileSync(this.tasksFilePath, JSON.stringify(this.tasks, null, 2), 'utf-8');
+            // Notify StoryService to recalculate story states
+            if (this.storyStateCallback) {
+                this.storyStateCallback();
+            }
         } catch (error) {
             console.error('Error saving tasks:', error);
             throw error;
@@ -136,6 +155,7 @@ export class TaskService {
             points: this.calculatePoints(input.estimatedTime),
             comments: [],
             relationships: [],
+            storyId: input.storyId,
         };
 
         this.tasks.push(task);
@@ -648,5 +668,20 @@ export class TaskService {
         traverse(taskId);
 
         return { nodes, edges };
+    }
+
+    /**
+     * Set task's story assignment
+     */
+    setTaskStory(taskId: string, storyId: string | undefined): Task {
+        const task = this.getTaskById(taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${taskId} not found`);
+        }
+
+        task.storyId = storyId;
+        this.saveTasks();
+        return task;
     }
 }

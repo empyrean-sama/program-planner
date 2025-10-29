@@ -28,22 +28,34 @@ import {
     DialogContent,
     DialogActions,
     DialogContentText,
+    Card,
+    CardContent,
+    Tooltip,
+    LinearProgress,
+    Stack,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { Task, TaskState } from '../../../types/Task';
+import { Story } from '../../../types/Story';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
 import MarkdownTextarea from '../../Common/MarkdownTextarea';
 import TaskRelationships from './TaskRelationships';
 import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
+import useAppGlobalState from '../../../hooks/useAppGlobalState';
 
 // User can only set these states
 const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
@@ -61,13 +73,19 @@ export default function TaskDetailsPage() {
     const { taskId } = useParams<{ taskId: string }>();
     const navigate = useNavigate();
     const location = useLocation();
+    const { showToast } = useAppGlobalState();
     const locationState = location.state as LocationState | null;
     const [task, setTask] = useState<Task | null>(null);
+    const [story, setStory] = useState<Story | null>(null);
+    const [allStories, setAllStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+    const [storyDialogOpen, setStoryDialogOpen] = useState(false);
     const [saveError, setSaveError] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [titleValue, setTitleValue] = useState('');
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Final state confirmation
@@ -77,7 +95,16 @@ export default function TaskDetailsPage() {
 
     useEffect(() => {
         loadTask();
+        loadStories();
     }, [taskId]);
+
+    useEffect(() => {
+        if (task?.storyId) {
+            loadStory(task.storyId);
+        } else {
+            setStory(null);
+        }
+    }, [task?.storyId]);
 
     const loadTask = async () => {
         if (!taskId) return;
@@ -86,8 +113,23 @@ export default function TaskDetailsPage() {
         const result = await window.taskAPI.getTaskById(taskId);
         if (result.success && result.data) {
             setTask(result.data);
+            setTitleValue(result.data.title);
         }
         setLoading(false);
+    };
+
+    const loadStory = async (storyId: string) => {
+        const result = await window.storyAPI.getStoryById(storyId);
+        if (result.success && result.data) {
+            setStory(result.data);
+        }
+    };
+
+    const loadStories = async () => {
+        const result = await window.storyAPI.getAllStories();
+        if (result.success && result.data) {
+            setAllStories(result.data.filter(s => s.state !== 'Finished'));
+        }
     };
 
     const isInFinalState = (): boolean => {
@@ -260,6 +302,49 @@ export default function TaskDetailsPage() {
         setHasUnsavedChanges(false);
     };
 
+    const handleSaveTitle = async () => {
+        if (!task || !titleValue.trim()) {
+            showToast('Title cannot be empty', 'error');
+            setTitleValue(task?.title || '');
+            setEditingTitle(false);
+            return;
+        }
+        
+        const updatedTask = { ...task, title: titleValue.trim() };
+        setTask(updatedTask);
+        setEditingTitle(false);
+        await saveTask(updatedTask);
+    };
+
+    const handleAssignToStory = async (storyId: string) => {
+        if (!task) return;
+        
+        try {
+            const result = await window.taskAPI.setStory(task.id, storyId || undefined);
+            if (result.success && result.data) {
+                setTask(result.data);
+                showToast(storyId ? 'Task assigned to story' : 'Task removed from story', 'success');
+                setStoryDialogOpen(false);
+                loadStories();
+            } else {
+                showToast(result.error || 'Failed to update story', 'error');
+            }
+        } catch (error) {
+            showToast('An error occurred', 'error');
+        }
+    };
+
+    const getTaskStateColor = (state: TaskState): 'default' | 'primary' | 'success' | 'error' | 'warning' => {
+        switch (state) {
+            case 'Doing': return 'primary';
+            case 'Scheduled': return 'primary';
+            case 'Finished': return 'success';
+            case 'Failed': return 'error';
+            case 'Deferred': return 'warning';
+            default: return 'default';
+        }
+    };
+
     const getScheduleEntriesImpact = (): { inProgress: number; future: number } => {
         if (!task) return { inProgress: 0, future: 0 };
         const now = new Date();
@@ -285,7 +370,7 @@ export default function TaskDetailsPage() {
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                 <CircularProgress />
             </Box>
         );
@@ -307,309 +392,428 @@ export default function TaskDetailsPage() {
     const warningMessages = getWarningMessages(appearance.warnings);
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3, overflow: 'auto' }}>
-            {/* Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                <IconButton onClick={handleBack}>
-                    <ArrowBackIcon />
-                </IconButton>
-                <Typography variant="h4" sx={{ flex: 1 }}>Task Details</Typography>
-                {isSaving && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} />
-                        <Typography variant="body2" color="text.secondary">Saving...</Typography>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            {/* Header with Task Title */}
+            <Box 
+                sx={{ 
+                    bgcolor: 'background.paper',
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    px: 3,
+                    py: 2,
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 10,
+                }}
+            >
+                <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <IconButton onClick={handleBack} size="small">
+                            <ArrowBackIcon />
+                        </IconButton>
+                        
+                        {editingTitle ? (
+                            <TextField
+                                fullWidth
+                                value={titleValue}
+                                onChange={(e) => setTitleValue(e.target.value)}
+                                onBlur={handleSaveTitle}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSaveTitle();
+                                    if (e.key === 'Escape') {
+                                        setTitleValue(task.title);
+                                        setEditingTitle(false);
+                                    }
+                                }}
+                                autoFocus
+                                variant="standard"
+                                sx={{ 
+                                    '& .MuiInputBase-input': { 
+                                        fontSize: '1.75rem',
+                                        fontWeight: 600,
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <Typography 
+                                variant="h4" 
+                                sx={{ 
+                                    flex: 1,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    '&:hover': { color: 'primary.main' }
+                                }}
+                                onClick={() => setEditingTitle(true)}
+                            >
+                                {task.title}
+                            </Typography>
+                        )}
+                        
+                        <Tooltip title="Edit title">
+                            <IconButton size="small" onClick={() => setEditingTitle(true)}>
+                                <EditIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        
+                        {isSaving && <CircularProgress size={20} />}
                     </Box>
-                )}
+                    
+                    {/* Metadata Row */}
+                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                        <Chip 
+                            label={task.state} 
+                            color={getTaskStateColor(task.state)}
+                            size="small"
+                        />
+                        <Chip 
+                            label={`${task.points} points`} 
+                            variant="outlined"
+                            size="small"
+                        />
+                        {task.estimatedTime && (
+                            <Chip 
+                                label={`Est: ${task.estimatedTime}m`} 
+                                variant="outlined"
+                                size="small"
+                            />
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                            Filed: {dayjs(task.filingDateTime).format('MMM D, YYYY')}
+                        </Typography>
+                        
+                        {/* Story Badge */}
+                        {story ? (
+                            <Chip
+                                icon={<AutoStoriesIcon />}
+                                label={story.title}
+                                onClick={() => navigate(`/stories/${story.id}`)}
+                                onDelete={() => setStoryDialogOpen(true)}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                            />
+                        ) : (
+                            <Button
+                                startIcon={<AutoStoriesIcon />}
+                                onClick={() => setStoryDialogOpen(true)}
+                                size="small"
+                                variant="outlined"
+                            >
+                                Assign to Story
+                            </Button>
+                        )}
+                    </Stack>
+                </Box>
             </Box>
 
-            {/* Warnings Section */}
-            {warningMessages.length > 0 && (
-                <Alert 
-                    severity={(appearance.warnings.overdue || appearance.warnings.scheduleBeyondDueDate) ? 'error' : 'warning'}
-                    icon={<WarningAmberIcon />}
-                    sx={{ mb: 3 }}
-                >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                        Task Warnings
-                    </Typography>
-                    {warningMessages.map((message, idx) => (
-                        <Typography key={idx} variant="body2">
-                            • {message}
-                        </Typography>
-                    ))}
-                </Alert>
-            )}
-
-            {/* Progress Metrics for Scheduled/Doing tasks */}
-            {appearance.metrics.hasEstimate && appearance.metrics.hasSchedule && 
-             ['Scheduled', 'Doing'].includes(task.state) && (
-                <Paper sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="subtitle2">
-                            Progress Tracking
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {task.elapsedTime}m / {task.estimatedTime}m 
-                            ({Math.round(appearance.metrics.progressPercentage)}%)
-                        </Typography>
-                    </Box>
-                    <Box 
-                        sx={{ 
-                            width: '100%', 
-                            height: 8, 
-                            bgcolor: 'rgba(0,0,0,0.1)', 
-                            borderRadius: 1,
-                            overflow: 'hidden',
-                        }}
+            {/* Content */}
+            <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+                {/* Warnings */}
+                {warningMessages.length > 0 && (
+                    <Alert 
+                        severity={(appearance.warnings.overdue || appearance.warnings.scheduleBeyondDueDate) ? 'error' : 'warning'}
+                        icon={<WarningAmberIcon />}
+                        sx={{ mb: 3 }}
                     >
-                        <Box 
-                            sx={{ 
-                                width: `${Math.min(100, appearance.metrics.progressPercentage)}%`,
-                                height: '100%',
-                                bgcolor: appearance.metrics.exceedsEstimate 
-                                    ? 'error.main' 
-                                    : appearance.metrics.progressPercentage > 80 
-                                        ? 'warning.main' 
-                                        : 'success.main',
-                                transition: 'width 0.3s ease',
-                            }}
-                        />
-                    </Box>
-                </Paper>
-            )}
+                        {warningMessages.map((message, idx) => (
+                            <Typography key={idx} variant="body2">
+                                • {message}
+                            </Typography>
+                        ))}
+                    </Alert>
+                )}
 
-            <Box sx={{ maxWidth: 1200, width: '100%', mx: 'auto' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {/* Basic Information */}
-                    <Paper sx={{ p: 3 }}>
-                        <Typography variant="h6" sx={{ mb: 2 }}>Basic Information</Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {/* Task ID (Read-only) */}
-                            <TextField
-                                label="Task ID"
-                                fullWidth
-                                value={task.id}
-                                InputProps={{ readOnly: true }}
-                                size="small"
-                            />
-
-                            {/* Filing Date & Time (Read-only) */}
-                            <TextField
-                                label="Filing Date & Time"
-                                fullWidth
-                                value={dayjs(task.filingDateTime).format('MMM D, YYYY h:mm A')}
-                                InputProps={{ readOnly: true }}
-                                size="small"
-                            />
-
-                            {/* State - System-managed display with user override option */}
-                            <Box>
-                                <TextField
-                                    label="Current State"
-                                    fullWidth
-                                    value={task.state}
-                                    InputProps={{ readOnly: true }}
-                                    size="small"
-                                    helperText="State is automatically managed by the system. You can override to final states below."
-                                />
+                {/* Progress Bar for Active Tasks */}
+                {appearance.metrics.hasEstimate && appearance.metrics.hasSchedule && 
+                 ['Scheduled', 'Doing'].includes(task.state) && (
+                    <Card sx={{ mb: 3 }}>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="subtitle2" fontWeight={600}>
+                                    Time Progress
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {task.elapsedTime}m / {task.estimatedTime}m 
+                                    ({Math.round(appearance.metrics.progressPercentage)}%)
+                                </Typography>
                             </Box>
-
-                            {/* User State Override - Only show final states */}
-                            <FormControl fullWidth size="small" disabled={isInFinalState()}>
-                                <InputLabel>Set Final State (Optional)</InputLabel>
-                                <Select
-                                    value={pendingFinalState || (userSettableStates.includes(task.state) ? task.state : '')}
-                                    label="Set Final State (Optional)"
-                                    onChange={(e) => handleFieldChange('state', e.target.value as TaskState, true)}
-                                >
-                                    <MenuItem value="">
-                                        <em>Keep system-managed state</em>
-                                    </MenuItem>
-                                    {userSettableStates.map((state: TaskState) => (
-                                        <MenuItem key={state} value={state}>{state}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            {hasUnsavedChanges && pendingFinalState && (
-                                <Alert severity="info">
-                                    <Typography variant="body2">
-                                        Final state change to <strong>{pendingFinalState}</strong> is pending. 
-                                        Please confirm in the dialog to save this change.
-                                    </Typography>
-                                </Alert>
-                            )}
-
-                            {saveError && (
-                                <Box sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
-                                    <Typography variant="body2">{saveError}</Typography>
-                                </Box>
-                            )}
-
-                            {/* Title */}
-                            <TextField
-                                label="Title"
-                                fullWidth
-                                value={task.title}
-                                onChange={(e) => handleFieldChange('title', e.target.value)}
-                                onBlur={handleBlur}
+                            <LinearProgress
+                                variant="determinate"
+                                value={Math.min(100, appearance.metrics.progressPercentage)}
+                                color={appearance.metrics.exceedsEstimate 
+                                    ? 'error' 
+                                    : appearance.metrics.progressPercentage > 80 
+                                        ? 'warning' 
+                                        : 'success'}
+                                sx={{ height: 8, borderRadius: 1 }}
                             />
+                        </CardContent>
+                    </Card>
+                )}
 
-                            {/* Description */}
+                <Stack spacing={3}>
+                    {/* Description & Details */}
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                                Description
+                            </Typography>
                             <MarkdownTextarea
-                                label="Description"
                                 value={task.description}
                                 onChange={(value) => handleFieldChange('description', value)}
                                 onBlur={handleBlur}
                                 rows={6}
                                 placeholder="Enter task description... Supports markdown formatting"
                             />
-
-                            {/* Due Date & Time */}
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DateTimePicker
-                                    label="Due Date & Time"
-                                    value={task.dueDateTime ? dayjs(task.dueDateTime) : null}
-                                    onChange={(newValue: Dayjs | null) => 
-                                        handleFieldChange('dueDateTime', newValue?.toISOString(), true)
-                                    }
-                                    slotProps={{
-                                        textField: {
-                                            fullWidth: true,
-                                            size: 'small',
+                            
+                            <Divider sx={{ my: 3 }} />
+                            
+                            {/* Due Date */}
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                                    Due Date & Time
+                                </Typography>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DateTimePicker
+                                        value={task.dueDateTime ? dayjs(task.dueDateTime) : null}
+                                        onChange={(newValue: Dayjs | null) => 
+                                            handleFieldChange('dueDateTime', newValue?.toISOString(), true)
                                         }
-                                    }}
-                                />
-                            </LocalizationProvider>
-
-                            {/* Read-only fields */}
-                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
-                                <TextField
-                                    label="Estimated Time (minutes)"
-                                    value={task.estimatedTime || 'Not specified'}
-                                    InputProps={{ readOnly: true }}
-                                    size="small"
-                                />
-                                <TextField
-                                    label="Points"
-                                    value={task.points}
-                                    InputProps={{ readOnly: true }}
-                                    size="small"
-                                />
-                                <TextField
-                                    label="Elapsed Time (minutes)"
-                                    value={task.elapsedTime}
-                                    InputProps={{ readOnly: true }}
-                                    size="small"
-                                />
+                                        slotProps={{
+                                            textField: {
+                                                fullWidth: true,
+                                                size: 'small',
+                                            }
+                                        }}
+                                    />
+                                </LocalizationProvider>
                             </Box>
-                        </Box>
-                    </Paper>
+
+                            {/* State Management */}
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                                    State Management
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                    Current state is system-managed. Override to final state if needed.
+                                </Typography>
+                                <FormControl fullWidth size="small" disabled={isInFinalState()}>
+                                    <InputLabel>Set Final State</InputLabel>
+                                    <Select
+                                        value={pendingFinalState || (userSettableStates.includes(task.state) ? task.state : '')}
+                                        label="Set Final State"
+                                        onChange={(e) => handleFieldChange('state', e.target.value as TaskState, true)}
+                                    >
+                                        <MenuItem value="">
+                                            <em>Keep system-managed</em>
+                                        </MenuItem>
+                                        {userSettableStates.map((state: TaskState) => (
+                                            <MenuItem key={state} value={state}>{state}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                                
+                                {hasUnsavedChanges && pendingFinalState && (
+                                    <Alert severity="info" sx={{ mt: 2 }}>
+                                        <Typography variant="body2">
+                                            Final state change to <strong>{pendingFinalState}</strong> is pending confirmation.
+                                        </Typography>
+                                    </Alert>
+                                )}
+                            </Box>
+                        </CardContent>
+                    </Card>
 
                     {/* Schedule History */}
-                    <Paper sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6">Schedule History</Typography>
-                            <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                onClick={() => setScheduleDialogOpen(true)}
-                                variant="contained"
-                            >
-                                Add Entry
-                            </Button>
-                        </Box>
-                        
-                        {task.scheduleHistory.length > 0 ? (
-                            <TableContainer>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Start Time</TableCell>
-                                            <TableCell>End Time</TableCell>
-                                            <TableCell>Duration (mins)</TableCell>
-                                            <TableCell align="right">Actions</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {[...task.scheduleHistory]
-                                            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                                            .map((entry) => (
-                                            <TableRow key={entry.id}>
-                                                <TableCell>
-                                                    {dayjs(entry.startTime).format('MMM D, YYYY h:mm A')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {dayjs(entry.endTime).format('MMM D, YYYY h:mm A')}
-                                                </TableCell>
-                                                <TableCell>{entry.duration}</TableCell>
-                                                <TableCell align="right">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleRemoveScheduleEntry(entry.id)}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </TableCell>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    Schedule History
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => setScheduleDialogOpen(true)}
+                                    variant="contained"
+                                >
+                                    Add Entry
+                                </Button>
+                            </Box>
+                            
+                            {task.scheduleHistory.length > 0 ? (
+                                <TableContainer>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Start</TableCell>
+                                                <TableCell>End</TableCell>
+                                                <TableCell>Duration</TableCell>
+                                                <TableCell align="right">Actions</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">
-                                No schedule entries yet
-                            </Typography>
-                        )}
-                    </Paper>
+                                        </TableHead>
+                                        <TableBody>
+                                            {[...task.scheduleHistory]
+                                                .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+                                                .map((entry) => (
+                                                <TableRow key={entry.id}>
+                                                    <TableCell>
+                                                        {dayjs(entry.startTime).format('MMM D, h:mm A')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {dayjs(entry.endTime).format('MMM D, h:mm A')}
+                                                    </TableCell>
+                                                    <TableCell>{entry.duration}m</TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleRemoveScheduleEntry(entry.id)}
+                                                        >
+                                                            <DeleteIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    No schedule entries yet
+                                </Typography>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     {/* Comments */}
-                    <Paper sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="h6">Comments</Typography>
-                            <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                onClick={() => setCommentDialogOpen(true)}
-                                variant="contained"
-                            >
-                                Add Comment
-                            </Button>
-                        </Box>
-                        
-                        {task.comments.length > 0 ? (
-                            <List>
-                                {task.comments.map((comment, index) => (
-                                    <React.Fragment key={comment.id}>
-                                        <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                                            <MarkdownTextarea
-                                                value={comment.text}
-                                                onChange={() => {}} // Read-only
-                                                disabled
-                                                rows={1}
-                                                fullWidth
-                                            />
-                                            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    Comments
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => setCommentDialogOpen(true)}
+                                    variant="contained"
+                                >
+                                    Add Comment
+                                </Button>
+                            </Box>
+                            
+                            {task.comments.length > 0 ? (
+                                <Stack spacing={2} divider={<Divider />}>
+                                    {task.comments.map((comment) => (
+                                        <Box key={comment.id}>
+                                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {comment.text}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                                                 {dayjs(comment.createdAt).format('MMM D, YYYY h:mm A')}
                                             </Typography>
-                                        </ListItem>
-                                        {index < task.comments.length - 1 && <Divider />}
-                                    </React.Fragment>
-                                ))}
-                            </List>
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">
-                                No comments yet
-                            </Typography>
-                        )}
-                    </Paper>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    No comments yet
+                                </Typography>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     {/* Task Relationships */}
-                    <Paper sx={{ p: 3 }}>
-                        <TaskRelationships task={task} onUpdate={loadTask} />
-                    </Paper>
-                </Box>
+                    <Card>
+                        <CardContent>
+                            <TaskRelationships task={task} onUpdate={loadTask} />
+                        </CardContent>
+                    </Card>
+                </Stack>
             </Box>
+
+            {/* Dialogs */}
+            <ScheduleEntryDialog
+                open={scheduleDialogOpen}
+                taskId={task.id}
+                onClose={() => setScheduleDialogOpen(false)}
+                onEntryAdded={handleScheduleAdded}
+            />
+
+            <CommentDialog
+                open={commentDialogOpen}
+                taskId={task.id}
+                onClose={() => setCommentDialogOpen(false)}
+                onCommentAdded={handleCommentAdded}
+            />
+
+            {/* Story Assignment Dialog */}
+            <Dialog open={storyDialogOpen} onClose={() => setStoryDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    {story ? 'Change Story Assignment' : 'Assign to Story'}
+                </DialogTitle>
+                <DialogContent>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel>Story</InputLabel>
+                        <Select
+                            value={task.storyId || ''}
+                            label="Story"
+                            onChange={(e) => handleAssignToStory(e.target.value)}
+                        >
+                            <MenuItem value="">
+                                <em>No Story</em>
+                            </MenuItem>
+                            {allStories.map((s) => (
+                                <MenuItem key={s.id} value={s.id}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography>{s.title}</Typography>
+                                        <Chip label={s.state} size="small" />
+                                    </Box>
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    
+                    {story && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Current Story:
+                            </Typography>
+                            <Card variant="outlined">
+                                <CardContent>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <Box>
+                                            <Typography variant="subtitle1" fontWeight={600}>
+                                                {story.title}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {story.description}
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            size="small"
+                                            startIcon={<OpenInNewIcon />}
+                                            onClick={() => {
+                                                setStoryDialogOpen(false);
+                                                navigate(`/stories/${story.id}`);
+                                            }}
+                                        >
+                                            View
+                                        </Button>
+                                    </Box>
+                                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                                        <Chip label={`${story.progress}% complete`} size="small" />
+                                        <Chip label={`${story.taskIds.length} tasks`} size="small" variant="outlined" />
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setStoryDialogOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
 
             <ScheduleEntryDialog
                 open={scheduleDialogOpen}

@@ -12,6 +12,9 @@ const TasksPage = lazy(() => import('../Pages/Tasks/TasksPage'));
 const TaskDetailsPage = lazy(() => import('../Pages/Tasks/TaskDetailsPage'));
 const MetricsPage = lazy(() => import('../Pages/Metrics/MetricsPage'));
 const SettingsPage = lazy(() => import('../Pages/Settings/SettingsPage'));
+const StoriesPage = lazy(() => import('../Pages/Stories/StoriesPage'));
+const StoryDetailsPage = lazy(() => import('../Pages/Stories/StoryDetailsPage'));
+const StoryMetricsPage = lazy(() => import('../Pages/Stories/StoryMetricsPage'));
 
 // Loading fallback component
 function PageLoader() {
@@ -46,6 +49,21 @@ export default function AppLayout() {
             <Route path="tasks/:taskId" element={
                 <Suspense fallback={<PageLoader />}>
                     <TaskDetailsPage />
+                </Suspense>
+            } />
+            <Route path="stories" element={
+                <Suspense fallback={<PageLoader />}>
+                    <StoriesPage />
+                </Suspense>
+            } />
+            <Route path="stories/:id" element={
+                <Suspense fallback={<PageLoader />}>
+                    <StoryDetailsPage />
+                </Suspense>
+            } />
+            <Route path="stories/:id/metrics" element={
+                <Suspense fallback={<PageLoader />}>
+                    <StoryMetricsPage />
                 </Suspense>
             } />
             <Route path="metrics" element={

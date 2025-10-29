@@ -8,6 +8,13 @@ import {
     AddRelationshipInput,
     RemoveRelationshipInput,
 } from './types/Task';
+import {
+    Story,
+    CreateStoryInput,
+    UpdateStoryInput,
+    AddTaskToStoryInput,
+    RemoveTaskFromStoryInput,
+} from './types/Story';
 
 export interface IElectronAPI {
     minimize: () => void;
@@ -32,11 +39,27 @@ export interface ITaskAPI {
     addRelationship: (input: AddRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     removeRelationship: (input: RemoveRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     getDependencyGraph: (taskId: string) => Promise<{ success: boolean; data?: { nodes: Task[]; edges: { from: string; to: string }[] }; error?: string }>;
+    setStory: (taskId: string, storyId: string | undefined) => Promise<{ success: boolean; data?: Task; error?: string }>;
+}
+
+export interface IStoryAPI {
+    createStory: (input: CreateStoryInput) => Promise<{ success: boolean; data?: Story; error?: string }>;
+    getAllStories: () => Promise<{ success: boolean; data?: Story[]; error?: string }>;
+    getStoryById: (id: string) => Promise<{ success: boolean; data?: Story; error?: string }>;
+    updateStory: (input: UpdateStoryInput) => Promise<{ success: boolean; data?: Story; error?: string }>;
+    deleteStory: (id: string) => Promise<{ success: boolean; error?: string }>;
+    addTask: (input: AddTaskToStoryInput) => Promise<{ success: boolean; data?: Story; error?: string }>;
+    removeTask: (input: RemoveTaskFromStoryInput) => Promise<{ success: boolean; data?: Story; error?: string }>;
+    getTasks: (storyId: string) => Promise<{ success: boolean; data?: Task[]; error?: string }>;
+    exportData: () => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    importData: () => Promise<{ success: boolean; error?: string }>;
+    destroyAllData: () => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {
     interface Window {
         electron: IElectronAPI;
         taskAPI: ITaskAPI;
+        storyAPI: IStoryAPI;
     }
 }
