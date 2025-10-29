@@ -3,6 +3,9 @@ import EventIcon from '@mui/icons-material/Event';
 import InfoIcon from '@mui/icons-material/Info';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import React from 'react';
 
 /**
@@ -38,6 +41,46 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
             }
         },
         hidden: (context: any) => !context.task || !context.scheduleEntryId, // Only show when on a scheduled task
+    },
+    {
+        id: 'edit-schedule-entry',
+        label: 'Edit Schedule Time',
+        icon: React.createElement(EditIcon),
+        action: (context: any) => {
+            if (context.task && context.scheduleEntryId && context.onEditSchedule) {
+                context.onEditSchedule(context.task.id, context.scheduleEntryId);
+            }
+        },
+        hidden: (context: any) => !context.task || !context.scheduleEntryId,
+    },
+    {
+        id: 'copy-schedule-entry',
+        label: 'Duplicate to Another Time',
+        icon: React.createElement(ContentCopyIcon),
+        action: (context: any) => {
+            if (context.task && context.onDuplicateSchedule) {
+                context.onDuplicateSchedule(context.task.id);
+            }
+        },
+        hidden: (context: any) => !context.task || !context.scheduleEntryId,
+    },
+    {
+        id: 'divider-task-state',
+        label: '',
+        divider: true,
+        action: () => {},
+        hidden: (context: any) => !context.task, // Only show divider when on a task
+    },
+    {
+        id: 'complete-task',
+        label: 'Mark as Complete',
+        icon: React.createElement(CheckCircleIcon),
+        action: async (context: any) => {
+            if (context.task && context.onChangeTaskState) {
+                await context.onChangeTaskState(context.task.id, 'Finished');
+            }
+        },
+        hidden: (context: any) => !context.task || context.task?.state === 'Finished',
     },
     {
         id: 'divider-1',
