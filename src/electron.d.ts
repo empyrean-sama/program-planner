@@ -5,6 +5,8 @@ import {
     AddScheduleEntryInput,
     UpdateScheduleEntryInput,
     AddCommentInput,
+    AddRelationshipInput,
+    RemoveRelationshipInput,
 } from './types/Task';
 
 export interface IElectronAPI {
@@ -27,6 +29,9 @@ export interface ITaskAPI {
     destroyAllData: () => Promise<{ success: boolean; error?: string }>;
     exportData: () => Promise<{ success: boolean; filePath?: string; error?: string }>;
     importData: () => Promise<{ success: boolean; error?: string }>;
+    addRelationship: (input: AddRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    removeRelationship: (input: RemoveRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    getDependencyGraph: (taskId: string) => Promise<{ success: boolean; data?: { nodes: Task[]; edges: { from: string; to: string }[] }; error?: string }>;
 }
 
 declare global {

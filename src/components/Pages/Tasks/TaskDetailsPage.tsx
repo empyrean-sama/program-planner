@@ -42,6 +42,7 @@ import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
 import MarkdownTextarea from '../../Common/MarkdownTextarea';
+import TaskRelationships from './TaskRelationships';
 import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
 
 // User can only set these states
@@ -601,6 +602,11 @@ export default function TaskDetailsPage() {
                                 No comments yet
                             </Typography>
                         )}
+                    </Paper>
+
+                    {/* Task Relationships */}
+                    <Paper sx={{ p: 3 }}>
+                        <TaskRelationships task={task} onUpdate={loadTask} />
                     </Paper>
                 </Box>
             </Box>

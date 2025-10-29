@@ -8,6 +8,8 @@ import {
   AddScheduleEntryInput,
   UpdateScheduleEntryInput,
   AddCommentInput,
+  AddRelationshipInput,
+  RemoveRelationshipInput,
 } from './types/Task';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -207,6 +209,33 @@ function setupTaskIpcHandlers() {
   ipcMain.handle('task:destroyAllData', async () => {
     try {
       return taskService.destroyAllData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Add relationship
+  ipcMain.handle('task:addRelationship', async (_, input: AddRelationshipInput) => {
+    try {
+      return { success: true, data: taskService.addRelationship(input) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Remove relationship
+  ipcMain.handle('task:removeRelationship', async (_, input: RemoveRelationshipInput) => {
+    try {
+      return { success: true, data: taskService.removeRelationship(input) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Get task dependency graph
+  ipcMain.handle('task:getDependencyGraph', async (_, taskId: string) => {
+    try {
+      return { success: true, data: taskService.getTaskDependencyGraph(taskId) };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }

@@ -9,8 +9,11 @@ import {
     AddScheduleEntryInput,
     UpdateScheduleEntryInput,
     AddCommentInput,
+    AddRelationshipInput,
+    RemoveRelationshipInput,
     ScheduleHistoryEntry,
     TaskComment,
+    TaskRelationship,
 } from '../types/Task';
 import { TaskStateRulesEngine } from './TaskStateRulesEngine';
 
@@ -37,9 +40,16 @@ export class TaskService {
             if (fs.existsSync(this.tasksFilePath)) {
                 const data = fs.readFileSync(this.tasksFilePath, 'utf-8');
                 this.tasks = JSON.parse(data);
-                // Apply rules engine to all loaded tasks
-                this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
-                // Save if any states were updated
+                
+                // Migrate tasks that don't have relationships field
+                this.tasks.forEach(task => {
+                    if (!task.relationships) {
+                        task.relationships = [];
+                    }
+                    TaskStateRulesEngine.applyRules(task);
+                });
+                
+                // Save if any states were updated or migrations were applied
                 this.saveTasks();
             } else {
                 this.tasks = [];
@@ -125,6 +135,7 @@ export class TaskService {
             elapsedTime: 0,
             points: this.calculatePoints(input.estimatedTime),
             comments: [],
+            relationships: [],
         };
 
         this.tasks.push(task);
@@ -463,5 +474,179 @@ export class TaskService {
             console.error('Error destroying data:', error);
             return { success: false, error: (error as Error).message };
         }
+    }
+
+    /**
+     * Add a relationship between tasks
+     */
+    addRelationship(input: AddRelationshipInput): Task {
+        const task = this.getTaskById(input.taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${input.taskId} not found`);
+        }
+
+        const relatedTask = this.getTaskById(input.relatedTaskId);
+        
+        if (!relatedTask) {
+            throw new Error(`Related task with ID ${input.relatedTaskId} not found`);
+        }
+
+        // Check if relationship already exists
+        const existingRelationship = task.relationships.find(
+            rel => rel.relatedTaskId === input.relatedTaskId && rel.type === input.type
+        );
+
+        if (existingRelationship) {
+            throw new Error(`Relationship already exists`);
+        }
+
+        // Check for cycles (DAG validation)
+        if (this.wouldCreateCycle(input.taskId, input.relatedTaskId, input.type)) {
+            throw new Error(`Cannot add relationship: would create a cycle in the task graph`);
+        }
+
+        const relationship: TaskRelationship = {
+            id: uuidv4(),
+            type: input.type,
+            relatedTaskId: input.relatedTaskId,
+            createdAt: new Date().toISOString(),
+        };
+
+        task.relationships.push(relationship);
+
+        // Add reciprocal relationship
+        const reciprocalType = input.type === 'predecessor' ? 'successor' : 'predecessor';
+        const reciprocalRelationship: TaskRelationship = {
+            id: uuidv4(),
+            type: reciprocalType,
+            relatedTaskId: input.taskId,
+            createdAt: new Date().toISOString(),
+        };
+
+        relatedTask.relationships.push(reciprocalRelationship);
+
+        this.saveTasks();
+        return task;
+    }
+
+    /**
+     * Remove a relationship
+     */
+    removeRelationship(input: RemoveRelationshipInput): Task {
+        const task = this.getTaskById(input.taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${input.taskId} not found`);
+        }
+
+        const relationshipIndex = task.relationships.findIndex(rel => rel.id === input.relationshipId);
+        
+        if (relationshipIndex === -1) {
+            throw new Error(`Relationship with ID ${input.relationshipId} not found`);
+        }
+
+        const relationship = task.relationships[relationshipIndex];
+        
+        // Remove the relationship
+        task.relationships.splice(relationshipIndex, 1);
+
+        // Remove reciprocal relationship
+        const relatedTask = this.getTaskById(relationship.relatedTaskId);
+        if (relatedTask) {
+            const reciprocalType = relationship.type === 'predecessor' ? 'successor' : 'predecessor';
+            relatedTask.relationships = relatedTask.relationships.filter(
+                rel => !(rel.relatedTaskId === input.taskId && rel.type === reciprocalType)
+            );
+        }
+
+        this.saveTasks();
+        return task;
+    }
+
+    /**
+     * Check if adding a relationship would create a cycle (for DAG validation)
+     */
+    private wouldCreateCycle(taskId: string, relatedTaskId: string, type: 'predecessor' | 'successor'): boolean {
+        // If we're adding a predecessor, check if relatedTask already depends on taskId
+        // If we're adding a successor, check if taskId already depends on relatedTask
+        
+        const targetId = type === 'predecessor' ? taskId : relatedTaskId;
+        const sourceId = type === 'predecessor' ? relatedTaskId : taskId;
+
+        return this.hasPath(sourceId, targetId);
+    }
+
+    /**
+     * Check if there's a path from source to target through predecessors
+     */
+    private hasPath(sourceId: string, targetId: string, visited: Set<string> = new Set()): boolean {
+        if (sourceId === targetId) {
+            return true;
+        }
+
+        if (visited.has(sourceId)) {
+            return false;
+        }
+
+        visited.add(sourceId);
+
+        const sourceTask = this.getTaskById(sourceId);
+        if (!sourceTask) {
+            return false;
+        }
+
+        // Follow predecessor relationships (dependencies)
+        const predecessors = sourceTask.relationships.filter(rel => rel.type === 'predecessor');
+        
+        for (const predecessor of predecessors) {
+            if (this.hasPath(predecessor.relatedTaskId, targetId, visited)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get task dependency graph for a specific task (all predecessors recursively)
+     */
+    getTaskDependencyGraph(taskId: string): { nodes: Task[]; edges: { from: string; to: string }[] } {
+        const task = this.getTaskById(taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${taskId} not found`);
+        }
+
+        const nodes: Task[] = [];
+        const edges: { from: string; to: string }[] = [];
+        const visited = new Set<string>();
+
+        const traverse = (currentTaskId: string) => {
+            if (visited.has(currentTaskId)) {
+                return;
+            }
+
+            visited.add(currentTaskId);
+            const currentTask = this.getTaskById(currentTaskId);
+            
+            if (!currentTask) {
+                return;
+            }
+
+            nodes.push(currentTask);
+
+            // Get all predecessors
+            const predecessors = currentTask.relationships.filter(rel => rel.type === 'predecessor');
+            
+            for (const predecessor of predecessors) {
+                edges.push({ from: predecessor.relatedTaskId, to: currentTaskId });
+                traverse(predecessor.relatedTaskId);
+            }
+        };
+
+        traverse(taskId);
+
+        return { nodes, edges };
     }
 }

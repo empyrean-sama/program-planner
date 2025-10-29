@@ -38,6 +38,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
+import TaskRelationships from './TaskRelationships';
 
 interface TaskDetailsDialogProps {
     open: boolean;
@@ -365,6 +366,13 @@ export default function TaskDetailsDialog({
                                 No comments yet
                             </Typography>
                         )}
+                    </Box>
+
+                    <Divider />
+
+                    {/* Task Relationships */}
+                    <Box>
+                        <TaskRelationships task={editedTask} onUpdate={handleScheduleAdded} />
                     </Box>
                 </Box>
             </DialogContent>

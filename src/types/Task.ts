@@ -14,6 +14,13 @@ export interface TaskComment {
     createdAt: string; // ISO 8601 format
 }
 
+export interface TaskRelationship {
+    id: string; // UUID of the relationship
+    type: 'predecessor' | 'successor';
+    relatedTaskId: string; // UUID of the related task
+    createdAt: string; // ISO 8601 format
+}
+
 export interface Task {
     // System-generated fields
     id: string; // UUID
@@ -37,6 +44,9 @@ export interface Task {
     
     // Comments
     comments: TaskComment[];
+    
+    // Relationships (predecessors and successors)
+    relationships: TaskRelationship[];
 }
 
 export interface CreateTaskInput {
@@ -70,4 +80,15 @@ export interface UpdateScheduleEntryInput {
 export interface AddCommentInput {
     taskId: string;
     text: string;
+}
+
+export interface AddRelationshipInput {
+    taskId: string;
+    relatedTaskId: string;
+    type: 'predecessor' | 'successor';
+}
+
+export interface RemoveRelationshipInput {
+    taskId: string;
+    relationshipId: string;
 }

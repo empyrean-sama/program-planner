@@ -8,6 +8,8 @@ import {
     AddScheduleEntryInput,
     UpdateScheduleEntryInput,
     AddCommentInput,
+    AddRelationshipInput,
+    RemoveRelationshipInput,
     Task,
 } from './types/Task';
 
@@ -32,4 +34,7 @@ contextBridge.exposeInMainWorld('taskAPI', {
     destroyAllData: () => ipcRenderer.invoke('task:destroyAllData'),
     exportData: () => ipcRenderer.invoke('task:exportData'),
     importData: () => ipcRenderer.invoke('task:importData'),
+    addRelationship: (input: AddRelationshipInput) => ipcRenderer.invoke('task:addRelationship', input),
+    removeRelationship: (input: RemoveRelationshipInput) => ipcRenderer.invoke('task:removeRelationship', input),
+    getDependencyGraph: (taskId: string) => ipcRenderer.invoke('task:getDependencyGraph', taskId),
 });
