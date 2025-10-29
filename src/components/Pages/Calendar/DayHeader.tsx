@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, useTheme, Tooltip, Chip } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
-import { useNavigate, useLocation } from 'react-router';
 import { Task } from '../../../types/Task';
 import {
-    getTaskSchedulesForDate,
-    getTaskColor,
+    getTaskDeadlinesForDate,
+    getDeadlineColor,
+    getDeadlineUrgency,
 } from './utils/calendarTaskUtils';
 
 interface DayHeaderProps {
@@ -15,12 +15,11 @@ interface DayHeaderProps {
     isSelected?: boolean;
     currentView?: 'month' | 'week' | 'day';
     currentDate?: Dayjs;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number, task?: Task, scheduleEntryId?: string) => void;
 }
 
-export default function DayHeader({ day, onDoubleClick, onClick, isSelected = false, currentView, currentDate }: DayHeaderProps) {
+export default function DayHeader({ day, onDoubleClick, onClick, isSelected = false, currentView, currentDate, onContextMenu }: DayHeaderProps) {
     const theme = useTheme();
-    const navigate = useNavigate();
-    const location = useLocation();
     const isToday = day.isSame(dayjs(), 'day');
     const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -35,28 +34,17 @@ export default function DayHeader({ day, onDoubleClick, onClick, isSelected = fa
         }
     };
 
-    const scheduledTasks = getTaskSchedulesForDate(tasks, day)
-        // Get unique tasks (a task might have multiple schedule entries for the day)
-        .reduce((unique: Task[], event) => {
-            if (!unique.find(t => t.id === event.task.id)) {
-                unique.push(event.task);
-            }
-            return unique;
-        }, []);
+    const deadlines = getTaskDeadlinesForDate(tasks, day);
 
     const handleClick = () => {
         onClick?.(day);
     };
 
-    const handleTaskClick = (taskId: string, event: React.MouseEvent) => {
+    const handleDeadlineContextMenu = (event: React.MouseEvent, task: Task) => {
         event.stopPropagation();
-        navigate(`/tasks/${taskId}`, {
-            state: {
-                from: location.pathname,
-                calendarView: currentView,
-                calendarDate: currentDate?.format('YYYY-MM-DD'),
-            },
-        });
+        if (onContextMenu) {
+            onContextMenu(event, day, undefined, task, '');
+        }
     };
 
     return (
@@ -102,8 +90,8 @@ export default function DayHeader({ day, onDoubleClick, onClick, isSelected = fa
                 {day.format('D')}
             </Typography>
 
-            {/* Task boxes */}
-            {scheduledTasks.length > 0 && (
+            {/* Deadline indicators */}
+            {deadlines.length > 0 && (
                 <Box
                     sx={{
                         mt: 1,
@@ -111,38 +99,37 @@ export default function DayHeader({ day, onDoubleClick, onClick, isSelected = fa
                         flexDirection: 'column',
                         gap: 0.5,
                         px: 0.5,
-                        maxHeight: '120px',
+                        maxHeight: '80px',
                         overflow: 'auto',
                     }}
                 >
-                    {scheduledTasks.map((task) => {
-                        const taskColor = getTaskColor(task.state);
+                    {deadlines.map((deadline) => {
+                        const urgency = getDeadlineUrgency(deadline.dueDateTime);
+                        const deadlineColor = getDeadlineColor(urgency);
                         return (
                             <Tooltip
-                                key={task.id}
+                                key={deadline.task.id}
                                 title={
                                     <Box>
-                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                            {task.title}
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: deadlineColor }}>
+                                            DEADLINE: {deadline.task.title}
                                         </Typography>
                                         <Typography variant="caption" display="block">
-                                            State: {task.state}
+                                            Due: {deadline.dueDateTime.format('h:mm A')}
                                         </Typography>
-                                        {task.estimatedTime && (
-                                            <Typography variant="caption" display="block">
-                                                Est: {task.estimatedTime} min
-                                            </Typography>
-                                        )}
+                                        <Typography variant="caption" display="block">
+                                            State: {deadline.task.state}
+                                        </Typography>
                                     </Box>
                                 }
                                 arrow
                             >
                                 <Chip
-                                    label={task.title}
+                                    label={`⚠️ ${deadline.task.title}`}
                                     size="small"
-                                    onClick={(e) => handleTaskClick(task.id, e)}
+                                    onContextMenu={(e) => handleDeadlineContextMenu(e, deadline.task)}
                                     sx={{
-                                        backgroundColor: taskColor,
+                                        backgroundColor: deadlineColor,
                                         color: '#fff',
                                         fontSize: '0.6rem',
                                         height: '20px',

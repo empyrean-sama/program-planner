@@ -188,14 +188,49 @@ export function layoutEvents(events: TaskCalendarEvent[]): TaskCalendarEvent[] {
         columns[column].push(event);
     });
 
-    // Calculate total columns needed for each time period
-    const maxColumns = columns.length;
+    // For each event, calculate how many columns are needed for its overlapping group
+    const eventTotalColumns: number[] = new Array(sortedEvents.length).fill(1);
+    
+    sortedEvents.forEach((event, index) => {
+        // Find all events that overlap with this event
+        const overlappingIndices = new Set<number>();
+        overlappingIndices.add(index);
+        
+        // Add direct overlaps
+        sortedEvents.forEach((otherEvent, otherIndex) => {
+            if (index !== otherIndex && eventsOverlap(event, otherEvent)) {
+                overlappingIndices.add(otherIndex);
+            }
+        });
+        
+        // Expand to include transitive overlaps (events that overlap with overlapping events)
+        let changed = true;
+        while (changed) {
+            changed = false;
+            const currentIndices = Array.from(overlappingIndices);
+            currentIndices.forEach(idx => {
+                sortedEvents.forEach((otherEvent, otherIndex) => {
+                    if (!overlappingIndices.has(otherIndex) && eventsOverlap(sortedEvents[idx], otherEvent)) {
+                        overlappingIndices.add(otherIndex);
+                        changed = true;
+                    }
+                });
+            });
+        }
+        
+        // The total columns for this event is the maximum column number in its overlap group + 1
+        let maxCol = 0;
+        overlappingIndices.forEach(idx => {
+            maxCol = Math.max(maxCol, eventColumns[idx]);
+        });
+        eventTotalColumns[index] = maxCol + 1;
+    });
 
     // Update events with column information
     return sortedEvents.map((event, index) => ({
         ...event,
         column: eventColumns[index],
-        totalColumns: maxColumns,
+        totalColumns: eventTotalColumns[index],
     }));
 }
 

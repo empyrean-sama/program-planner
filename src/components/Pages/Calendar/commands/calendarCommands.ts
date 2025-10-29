@@ -1,5 +1,6 @@
 import { CalendarContextMenuCommand } from '../types/CalendarContextMenuTypes';
 import EventIcon from '@mui/icons-material/Event';
+import InfoIcon from '@mui/icons-material/Info';
 import React from 'react';
 
 /**
@@ -7,6 +8,29 @@ import React from 'react';
  * This is the central registry for all context menu commands.
  */
 export const calendarCommands: CalendarContextMenuCommand[] = [
+    {
+        id: 'view-task-details',
+        label: 'View Task Details',
+        icon: React.createElement(InfoIcon),
+        action: (context: any) => {
+            if (context.task && context.navigate) {
+                context.navigate(`/tasks/${context.task.id}`, {
+                    state: {
+                        from: context.location?.pathname,
+                        calendarView: context.view,
+                        calendarDate: context.date?.format('YYYY-MM-DD'),
+                    },
+                });
+            }
+        },
+        disabled: (context: any) => !context.task, // Only enabled when a task is selected
+    },
+    {
+        id: 'divider-1',
+        label: '',
+        divider: true,
+        action: () => {},
+    },
     {
         id: 'add-task-schedule',
         label: 'Add Task Schedule',

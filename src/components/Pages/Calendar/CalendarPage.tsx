@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import CalendarHeader, { CalendarView } from './CalendarHeader';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
@@ -16,6 +16,7 @@ import {
     CalendarContextMenuContext,
 } from './types/CalendarContextMenuTypes';
 import useAppGlobalState from '../../../hooks/useAppGlobalState';
+import { Task } from '../../../types/Task';
 
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
@@ -28,6 +29,7 @@ interface LocationState {
 export default function CalendarPage() {
     const globalState = useAppGlobalState();
     const location = useLocation();
+    const navigate = useNavigate();
     const locationState = location.state as LocationState | null;
     
     const [view, setView] = useState<CalendarView>('month');
@@ -79,7 +81,9 @@ export default function CalendarPage() {
     const handleContextMenu = (
         event: React.MouseEvent,
         date: Dayjs,
-        hour?: number
+        hour?: number,
+        task?: Task,
+        scheduleEntryId?: string
     ) => {
         event.preventDefault();
         setContextMenu({
@@ -91,6 +95,8 @@ export default function CalendarPage() {
             hour,
             view,
             globalState,
+            task,
+            scheduleEntryId,
         });
     };
 
@@ -118,10 +124,16 @@ export default function CalendarPage() {
         globalState.showToast('Schedule entry added successfully', 'success', 3000);
     };
 
-    // Expose openScheduleDialog to context for commands
-    const contextWithDialog: CalendarContextMenuContext & { openScheduleDialog: (date?: Dayjs, hour?: number) => void } = {
+    // Expose openScheduleDialog, navigate, and location to context for commands
+    const contextWithDialog: CalendarContextMenuContext & { 
+        openScheduleDialog: (date?: Dayjs, hour?: number) => void;
+        navigate: ReturnType<typeof useNavigate>;
+        location: ReturnType<typeof useLocation>;
+    } = {
         ...contextMenuContext!,
         openScheduleDialog,
+        navigate,
+        location,
     };
 
     return (

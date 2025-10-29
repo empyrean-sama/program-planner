@@ -1,5 +1,6 @@
 import { Dayjs } from 'dayjs';
 import IAppGlobalStateContextAPI from '../../../../interface/IAppGlobalStateContextAPI';
+import { Task } from '../../../../types/Task';
 
 export interface CalendarContextMenuPosition {
     mouseX: number;
@@ -11,6 +12,8 @@ export interface CalendarContextMenuContext {
     hour?: number;
     view: 'month' | 'week' | 'day';
     globalState: IAppGlobalStateContextAPI;
+    task?: Task; // Optional task if right-clicked on a task card
+    scheduleEntryId?: string; // Optional schedule entry ID
 }
 
 export interface CalendarContextMenuCommand {

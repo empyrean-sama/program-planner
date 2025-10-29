@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import DayHeader from './DayHeader';
 import TimeSlotColumn from './TimeSlotColumn';
+import { Task } from '../../../types/Task';
 
 interface WeekViewProps {
     selectedDate: Dayjs;
-    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number) => void;
+    onContextMenu?: (event: React.MouseEvent, date: Dayjs, hour?: number, task?: Task, scheduleEntryId?: string) => void;
     onDayDoubleClick?: (date: Dayjs) => void;
 }
 
@@ -16,6 +17,18 @@ const HOUR_HEIGHT = 60; // pixels per hour
 export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick }: WeekViewProps) {
     const theme = useTheme();
     const [selectedDayHeader, setSelectedDayHeader] = useState<Dayjs | null>(null);
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    useEffect(() => {
+        loadTasks();
+    }, []);
+
+    const loadTasks = async () => {
+        const result = await window.taskAPI.getAllTasks();
+        if (result.success && result.data) {
+            setTasks(result.data);
+        }
+    };
 
     const getWeekDays = (): Dayjs[] => {
         const startOfWeek = selectedDate.startOf('week');
@@ -36,7 +49,7 @@ export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick
                     display: 'flex',
                     position: 'sticky',
                     top: 0,
-                    zIndex: 2,
+                    zIndex: 10,
                     backgroundColor: theme.palette.background.default,
                     mb: 1,
                 }}
@@ -49,6 +62,7 @@ export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick
                         onDoubleClick={onDayDoubleClick}
                         onClick={handleDayHeaderClick}
                         isSelected={selectedDayHeader?.isSame(day, 'day') || false}
+                        onContextMenu={onContextMenu}
                     />
                 ))}
             </Box>
@@ -104,6 +118,8 @@ export default function WeekView({ selectedDate, onContextMenu, onDayDoubleClick
                         onContextMenu={onContextMenu}
                         currentView="week"
                         currentDate={selectedDate}
+                        tasks={tasks}
+                        onTasksUpdate={loadTasks}
                     />
                 ))}
             </Box>
