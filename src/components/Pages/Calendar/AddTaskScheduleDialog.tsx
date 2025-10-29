@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -6,10 +6,6 @@ import {
     DialogActions,
     Button,
     Box,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Typography,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -17,6 +13,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { Task } from '../../../types/Task';
+import SearchableComboBox from '../../Common/SearchableComboBox';
 
 interface AddTaskScheduleDialogProps {
     open: boolean;
@@ -69,6 +66,15 @@ export default function AddTaskScheduleDialog({
         }
     };
 
+    // Convert tasks to SearchableComboBox options
+    const taskOptions = useMemo(() => {
+        return tasks.map(task => ({
+            value: task.id,
+            label: task.title,
+            subtitle: `${task.state}${task.estimatedTime ? ` • Est: ${task.estimatedTime} min` : ''}`,
+        }));
+    }, [tasks]);
+
     const handleClose = () => {
         setSelectedTaskId('');
         setStartTime(null);
@@ -115,25 +121,15 @@ export default function AddTaskScheduleDialog({
             <DialogContent>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                     {/* Task Selection */}
-                    <FormControl fullWidth>
-                        <InputLabel>Select Task</InputLabel>
-                        <Select
-                            value={selectedTaskId}
-                            label="Select Task"
-                            onChange={(e) => setSelectedTaskId(e.target.value)}
-                        >
-                            {tasks.length === 0 && (
-                                <MenuItem value="" disabled>
-                                    No active tasks available
-                                </MenuItem>
-                            )}
-                            {tasks.map((task) => (
-                                <MenuItem key={task.id} value={task.id}>
-                                    {task.title} ({task.state})
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <SearchableComboBox
+                        label="Select Task"
+                        value={selectedTaskId}
+                        options={taskOptions}
+                        onChange={setSelectedTaskId}
+                        placeholder="Search tasks..."
+                        searchThreshold={5}
+                        error={!!error && !selectedTaskId}
+                    />
 
                     {/* Show task details if selected */}
                     {selectedTask && (
