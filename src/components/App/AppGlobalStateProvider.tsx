@@ -1,6 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect } from "react";
 import { Snackbar, Alert, AlertColor, Box, LinearProgress } from "@mui/material";
 import IAppGlobalStateContextAPI, { ToastSeverity } from "../../interface/IAppGlobalStateContextAPI";
+import { Z_INDEX } from "../../utils/zIndex";
 
 interface ToastState {
     id: number;
@@ -69,7 +70,7 @@ export default function AppGlobalStateProvider({ children }: { children: React.R
                     position: 'fixed',
                     bottom: 16,
                     right: 16,
-                    zIndex: 9999,
+                    zIndex: Z_INDEX.TOAST,
                     display: 'flex',
                     flexDirection: 'column-reverse',
                     gap: 1,

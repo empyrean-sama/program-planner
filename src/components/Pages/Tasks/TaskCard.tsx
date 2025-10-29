@@ -14,6 +14,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Task } from '../../../types/Task';
 import dayjs from 'dayjs';
 import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
+import { transitions } from '../../../utils/animations';
 
 interface TaskCardProps {
     task: Task;
@@ -32,6 +33,7 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
                 display: 'flex', 
                 flexDirection: 'column',
                 breakInside: 'avoid', // Prevent breaking in masonry layout
+                ...transitions.hover,
                 ...appearance.styles.backgroundColor && { backgroundColor: appearance.styles.backgroundColor },
                 ...appearance.styles.backgroundImage && { backgroundImage: appearance.styles.backgroundImage },
                 ...appearance.styles.opacity && { opacity: appearance.styles.opacity },
