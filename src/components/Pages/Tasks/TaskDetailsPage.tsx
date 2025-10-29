@@ -23,6 +23,11 @@ import {
     ListItemText,
     CircularProgress,
     Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    DialogContentText,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -63,6 +68,11 @@ export default function TaskDetailsPage() {
     const [saveError, setSaveError] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    
+    // Final state confirmation
+    const [pendingFinalState, setPendingFinalState] = useState<TaskState | null>(null);
+    const [finalStateConfirmOpen, setFinalStateConfirmOpen] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     useEffect(() => {
         loadTask();
@@ -127,6 +137,15 @@ export default function TaskDetailsPage() {
     // Handle field changes with appropriate save strategy
     const handleFieldChange = (field: keyof Task, value: any, immediate: boolean = false) => {
         if (!task) return;
+        
+        // Special handling for final state changes
+        if (field === 'state' && value && finalStates.includes(value as TaskState)) {
+            setPendingFinalState(value as TaskState);
+            setFinalStateConfirmOpen(true);
+            setHasUnsavedChanges(true);
+            return; // Don't save immediately, wait for confirmation
+        }
+        
         const updatedTask = { ...task, [field]: value };
         setTask(updatedTask);
 
@@ -203,6 +222,64 @@ export default function TaskDetailsPage() {
     const handleCommentAdded = async () => {
         setCommentDialogOpen(false);
         loadTask();
+    };
+
+    const handleConfirmFinalState = async () => {
+        if (!task || !pendingFinalState) return;
+        
+        setIsSaving(true);
+        setSaveError('');
+        
+        const result = await window.taskAPI.updateTask({
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            state: pendingFinalState,
+            dueDateTime: task.dueDateTime,
+        });
+
+        setIsSaving(false);
+        
+        if (result.success && result.data) {
+            // Close dialog and reload to show removed future entries
+            setFinalStateConfirmOpen(false);
+            setPendingFinalState(null);
+            setHasUnsavedChanges(false);
+            
+            // Reload the task to see the updated state and removed future entries
+            await loadTask();
+        } else {
+            setSaveError(result.error || 'Failed to update task state');
+        }
+    };
+
+    const handleCancelFinalState = () => {
+        setFinalStateConfirmOpen(false);
+        setPendingFinalState(null);
+        setHasUnsavedChanges(false);
+    };
+
+    const getScheduleEntriesImpact = (): { inProgress: number; future: number } => {
+        if (!task) return { inProgress: 0, future: 0 };
+        const now = new Date();
+        
+        let inProgress = 0;
+        let future = 0;
+        
+        task.scheduleHistory.forEach(entry => {
+            const entryStart = new Date(entry.startTime);
+            const entryEnd = new Date(entry.endTime);
+            
+            if (entryStart <= now && entryEnd > now) {
+                // Entry is in progress
+                inProgress++;
+            } else if (entryStart > now) {
+                // Entry is purely future
+                future++;
+            }
+        });
+        
+        return { inProgress, future };
     };
 
     if (loading) {
@@ -340,7 +417,7 @@ export default function TaskDetailsPage() {
                             <FormControl fullWidth size="small" disabled={isInFinalState()}>
                                 <InputLabel>Set Final State (Optional)</InputLabel>
                                 <Select
-                                    value={userSettableStates.includes(task.state) ? task.state : ''}
+                                    value={pendingFinalState || (userSettableStates.includes(task.state) ? task.state : '')}
                                     label="Set Final State (Optional)"
                                     onChange={(e) => handleFieldChange('state', e.target.value as TaskState, true)}
                                 >
@@ -352,6 +429,15 @@ export default function TaskDetailsPage() {
                                     ))}
                                 </Select>
                             </FormControl>
+
+                            {hasUnsavedChanges && pendingFinalState && (
+                                <Alert severity="info">
+                                    <Typography variant="body2">
+                                        Final state change to <strong>{pendingFinalState}</strong> is pending. 
+                                        Please confirm in the dialog to save this change.
+                                    </Typography>
+                                </Alert>
+                            )}
 
                             {saveError && (
                                 <Box sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText', borderRadius: 1 }}>
@@ -445,7 +531,9 @@ export default function TaskDetailsPage() {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {task.scheduleHistory.map((entry) => (
+                                        {[...task.scheduleHistory]
+                                            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                                            .map((entry) => (
                                             <TableRow key={entry.id}>
                                                 <TableCell>
                                                     {dayjs(entry.startTime).format('MMM D, YYYY h:mm A')}
@@ -530,6 +618,72 @@ export default function TaskDetailsPage() {
                 onClose={() => setCommentDialogOpen(false)}
                 onCommentAdded={handleCommentAdded}
             />
+
+            {/* Final State Confirmation Dialog */}
+            <Dialog
+                open={finalStateConfirmOpen}
+                onClose={handleCancelFinalState}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    Confirm Final State Change
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                            This action cannot be undone!
+                        </Typography>
+                    </Alert>
+                    
+                    <DialogContentText>
+                        You are about to set this task to <strong>{pendingFinalState}</strong> state. 
+                        This is a final state and cannot be changed once saved.
+                    </DialogContentText>
+                    
+                    {(() => {
+                        const impact = getScheduleEntriesImpact();
+                        const hasImpact = impact.inProgress > 0 || impact.future > 0;
+                        
+                        if (!hasImpact) return null;
+                        
+                        return (
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                                <Typography variant="body2">
+                                    {impact.inProgress > 0 && (
+                                        <div>
+                                            <strong>{impact.inProgress}</strong> in-progress schedule {impact.inProgress === 1 ? 'entry' : 'entries'} will be updated to end now.
+                                        </div>
+                                    )}
+                                    {impact.future > 0 && (
+                                        <div>
+                                            <strong>{impact.future}</strong> future schedule {impact.future === 1 ? 'entry' : 'entries'} will be removed.
+                                        </div>
+                                    )}
+                                </Typography>
+                            </Alert>
+                        );
+                    })()}
+                    
+                    <DialogContentText sx={{ mt: 2 }}>
+                        Are you sure you want to proceed?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelFinalState} disabled={isSaving}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmFinalState} 
+                        variant="contained" 
+                        color="warning"
+                        disabled={isSaving}
+                        startIcon={isSaving ? <CircularProgress size={16} /> : null}
+                    >
+                        {isSaving ? 'Saving...' : 'Confirm'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

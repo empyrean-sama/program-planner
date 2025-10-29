@@ -4,6 +4,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    DialogContentText,
     Button,
     TextField,
     Box,
@@ -25,6 +26,8 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Alert,
+    CircularProgress,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -45,6 +48,7 @@ interface TaskDetailsDialogProps {
 }
 
 const taskStates: TaskState[] = ['Filed', 'Scheduled', 'Doing', 'Finished', 'Failed', 'Deferred', 'Removed'];
+const finalStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
 
 export default function TaskDetailsDialog({
     open,
@@ -56,12 +60,22 @@ export default function TaskDetailsDialog({
     const [editedTask, setEditedTask] = useState(task);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+    const [pendingFinalState, setPendingFinalState] = useState<TaskState | null>(null);
+    const [finalStateConfirmOpen, setFinalStateConfirmOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         setEditedTask(task);
     }, [task]);
 
     const handleFieldChange = (field: keyof Task, value: any) => {
+        // Special handling for final state changes
+        if (field === 'state' && value && finalStates.includes(value as TaskState)) {
+            setPendingFinalState(value as TaskState);
+            setFinalStateConfirmOpen(true);
+            return; // Don't update immediately, wait for confirmation
+        }
+        
         setEditedTask(prev => ({ ...prev, [field]: value }));
     };
 
@@ -112,6 +126,55 @@ export default function TaskDetailsDialog({
             setEditedTask(result.data);
             onTaskUpdated();
         }
+    };
+
+    const handleConfirmFinalState = async () => {
+        if (!pendingFinalState) return;
+        
+        setIsSaving(true);
+        const result = await window.taskAPI.updateTask({
+            id: editedTask.id,
+            title: editedTask.title,
+            description: editedTask.description,
+            state: pendingFinalState,
+            dueDateTime: editedTask.dueDateTime,
+        });
+
+        setIsSaving(false);
+        
+        if (result.success && result.data) {
+            setEditedTask(result.data);
+            setFinalStateConfirmOpen(false);
+            setPendingFinalState(null);
+            onTaskUpdated();
+        }
+    };
+
+    const handleCancelFinalState = () => {
+        setFinalStateConfirmOpen(false);
+        setPendingFinalState(null);
+    };
+
+    const getScheduleEntriesImpact = (): { inProgress: number; future: number } => {
+        const now = new Date();
+        
+        let inProgress = 0;
+        let future = 0;
+        
+        editedTask.scheduleHistory.forEach(entry => {
+            const entryStart = new Date(entry.startTime);
+            const entryEnd = new Date(entry.endTime);
+            
+            if (entryStart <= now && entryEnd > now) {
+                // Entry is in progress
+                inProgress++;
+            } else if (entryStart > now) {
+                // Entry is purely future
+                future++;
+            }
+        });
+        
+        return { inProgress, future };
     };
 
     return (
@@ -240,7 +303,9 @@ export default function TaskDetailsDialog({
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {editedTask.scheduleHistory.map((entry) => (
+                                        {[...editedTask.scheduleHistory]
+                                            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                                            .map((entry) => (
                                             <TableRow key={entry.id}>
                                                 <TableCell>
                                                     {dayjs(entry.startTime).format('MMM D, YYYY h:mm A')}
@@ -327,6 +392,72 @@ export default function TaskDetailsDialog({
                 onClose={() => setCommentDialogOpen(false)}
                 onCommentAdded={handleCommentAdded}
             />
+
+            {/* Final State Confirmation Dialog */}
+            <Dialog
+                open={finalStateConfirmOpen}
+                onClose={handleCancelFinalState}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    Confirm Final State Change
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                            This action cannot be undone!
+                        </Typography>
+                    </Alert>
+                    
+                    <DialogContentText>
+                        You are about to set this task to <strong>{pendingFinalState}</strong> state. 
+                        This is a final state and cannot be changed once saved.
+                    </DialogContentText>
+                    
+                    {(() => {
+                        const impact = getScheduleEntriesImpact();
+                        const hasImpact = impact.inProgress > 0 || impact.future > 0;
+                        
+                        if (!hasImpact) return null;
+                        
+                        return (
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                                <Typography variant="body2">
+                                    {impact.inProgress > 0 && (
+                                        <div>
+                                            <strong>{impact.inProgress}</strong> in-progress schedule {impact.inProgress === 1 ? 'entry' : 'entries'} will be updated to end now.
+                                        </div>
+                                    )}
+                                    {impact.future > 0 && (
+                                        <div>
+                                            <strong>{impact.future}</strong> future schedule {impact.future === 1 ? 'entry' : 'entries'} will be removed.
+                                        </div>
+                                    )}
+                                </Typography>
+                            </Alert>
+                        );
+                    })()}
+                    
+                    <DialogContentText sx={{ mt: 2 }}>
+                        Are you sure you want to proceed?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelFinalState} disabled={isSaving}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmFinalState} 
+                        variant="contained" 
+                        color="warning"
+                        disabled={isSaving}
+                        startIcon={isSaving ? <CircularProgress size={16} /> : null}
+                    >
+                        {isSaving ? 'Saving...' : 'Confirm & Save Changes'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Dialog>
     );
 }

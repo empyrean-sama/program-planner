@@ -193,13 +193,38 @@ export class TaskService {
             task.dueDateTime = input.dueDateTime;
         }
 
-        // Remove all future schedule entries when task enters a final state
+        // Update in-progress entries and remove future entries when task enters a final state
         if (isBecomingFinal) {
             const now = new Date();
-            task.scheduleHistory = task.scheduleHistory.filter(entry => {
-                const entryEnd = new Date(entry.endTime);
-                return entryEnd <= now;
-            });
+            const finalStateTime = now.toISOString();
+            
+            // Process each schedule entry
+            task.scheduleHistory = task.scheduleHistory
+                .map(entry => {
+                    const entryStart = new Date(entry.startTime);
+                    const entryEnd = new Date(entry.endTime);
+                    
+                    // If entry is in progress (started but not ended), update its end time
+                    if (entryStart <= now && entryEnd > now) {
+                        const updatedDuration = Math.floor((now.getTime() - entryStart.getTime()) / (1000 * 60));
+                        return {
+                            ...entry,
+                            endTime: finalStateTime,
+                            duration: updatedDuration,
+                        };
+                    }
+                    
+                    // Keep the entry as-is if it's already completed
+                    return entry;
+                })
+                .filter(entry => {
+                    // Remove purely future entries (those that haven't started yet)
+                    const entryStart = new Date(entry.startTime);
+                    return entryStart <= now;
+                });
+            
+            // Recalculate elapsed time after modifications
+            task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
         }
 
         // Apply rules engine (but don't override user-set final states)

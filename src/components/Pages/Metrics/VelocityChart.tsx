@@ -213,18 +213,21 @@ export function VelocityChart({ data, period, onPeriodChange }: VelocityChartPro
                                 height: '100%',
                                 pointerEvents: 'none',
                             }}
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
                         >
                             <polyline
                                 points={data.map((point, index) => {
                                     const x = ((index + 0.5) / data.length) * 100;
                                     const maxCumulative = Math.max(...data.map(d => d.cumulative), 1);
                                     const y = 100 - (point.cumulative / maxCumulative) * 100;
-                                    return `${x}%,${y}%`;
+                                    return `${x},${y}`;
                                 }).join(' ')}
                                 fill="none"
                                 stroke={theme.palette.primary.main}
-                                strokeWidth="2"
+                                strokeWidth="0.5"
                                 opacity="0.8"
+                                vectorEffect="non-scaling-stroke"
                             />
                             {data.map((point, index) => {
                                 const x = ((index + 0.5) / data.length) * 100;
@@ -233,10 +236,11 @@ export function VelocityChart({ data, period, onPeriodChange }: VelocityChartPro
                                 return (
                                     <circle
                                         key={index}
-                                        cx={`${x}%`}
-                                        cy={`${y}%`}
-                                        r="3"
+                                        cx={x}
+                                        cy={y}
+                                        r="1"
                                         fill={theme.palette.primary.main}
+                                        vectorEffect="non-scaling-stroke"
                                     />
                                 );
                             })}
