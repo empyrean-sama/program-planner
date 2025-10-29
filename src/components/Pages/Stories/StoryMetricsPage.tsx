@@ -360,11 +360,31 @@ function BurndownChart({ data, totalPoints }: BurndownChartProps) {
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
-    const maxPoints = Math.max(totalPoints, ...data.map(d => d.remainingPoints));
+    // Ensure maxPoints is never 0 to prevent NaN
+    const maxPoints = Math.max(1, totalPoints, ...data.map(d => d.remainingPoints));
 
-    // Scale functions
-    const xScale = (index: number) => (index / Math.max(1, data.length - 1)) * chartWidth;
-    const yScale = (points: number) => chartHeight - (points / maxPoints) * chartHeight;
+    // Scale functions with safety checks
+    const xScale = (index: number) => {
+        if (data.length <= 1) return 0;
+        return (index / (data.length - 1)) * chartWidth;
+    };
+    
+    const yScale = (points: number) => {
+        if (maxPoints === 0 || isNaN(points) || !isFinite(points)) return chartHeight;
+        const scaled = chartHeight - (points / maxPoints) * chartHeight;
+        return isNaN(scaled) || !isFinite(scaled) ? chartHeight : scaled;
+    };
+
+    // Don't render if no data
+    if (data.length === 0) {
+        return (
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+                <Typography color="text.secondary">
+                    No burndown data available yet
+                </Typography>
+            </Box>
+        );
+    }
 
     // Create path for actual burndown
     const actualPath = data

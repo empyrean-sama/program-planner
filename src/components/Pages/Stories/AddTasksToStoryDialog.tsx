@@ -112,8 +112,8 @@ export default function AddTasksToStoryDialog({
         // Exclude tasks already in the story
         if (existingTaskIds.includes(task.id)) return false;
 
-        // Show only unassigned tasks
-        if (showOnlyUnassigned && task.storyId) return false;
+        // Show only unassigned tasks (not in ANY story)
+        if (showOnlyUnassigned && task.storyIds && task.storyIds.length > 0) return false;
 
         // State filter
         if (stateFilter !== 'all' && task.state !== stateFilter) return false;

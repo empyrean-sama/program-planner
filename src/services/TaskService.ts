@@ -61,6 +61,15 @@ export class TaskService {
                     if (!task.relationships) {
                         task.relationships = [];
                     }
+                    // Migrate from single storyId to multiple storyIds
+                    if ('storyId' in task && !(task as any).storyIds) {
+                        (task as any).storyIds = (task as any).storyId ? [(task as any).storyId] : [];
+                        delete (task as any).storyId;
+                    }
+                    // Ensure storyIds exists
+                    if (!task.storyIds) {
+                        task.storyIds = [];
+                    }
                     TaskStateRulesEngine.applyRules(task);
                 });
                 
@@ -155,7 +164,7 @@ export class TaskService {
             points: this.calculatePoints(input.estimatedTime),
             comments: [],
             relationships: [],
-            storyId: input.storyId,
+            storyIds: input.storyIds || [],
         };
 
         this.tasks.push(task);
@@ -671,16 +680,55 @@ export class TaskService {
     }
 
     /**
-     * Set task's story assignment
+     * Add task to a story
      */
-    setTaskStory(taskId: string, storyId: string | undefined): Task {
+    addTaskToStory(taskId: string, storyId: string): Task {
         const task = this.getTaskById(taskId);
         
         if (!task) {
             throw new Error(`Task with ID ${taskId} not found`);
         }
 
-        task.storyId = storyId;
+        // Add story if not already present
+        if (!task.storyIds.includes(storyId)) {
+            task.storyIds.push(storyId);
+            this.saveTasks();
+        }
+        
+        return task;
+    }
+
+    /**
+     * Remove task from a story
+     */
+    removeTaskFromStory(taskId: string, storyId: string): Task {
+        const task = this.getTaskById(taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${taskId} not found`);
+        }
+
+        // Remove story if present
+        const index = task.storyIds.indexOf(storyId);
+        if (index > -1) {
+            task.storyIds.splice(index, 1);
+            this.saveTasks();
+        }
+        
+        return task;
+    }
+
+    /**
+     * Set task's story assignments (replaces all existing story associations)
+     */
+    setTaskStories(taskId: string, storyIds: string[]): Task {
+        const task = this.getTaskById(taskId);
+        
+        if (!task) {
+            throw new Error(`Task with ID ${taskId} not found`);
+        }
+
+        task.storyIds = storyIds;
         this.saveTasks();
         return task;
     }

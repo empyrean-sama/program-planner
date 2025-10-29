@@ -43,7 +43,7 @@ export default function CreateTaskFromStoryDialog({
                 description,
                 estimatedTime: estimatedTime ? parseInt(estimatedTime, 10) : undefined,
                 dueDateTime: dueDateTime || undefined,
-                storyId, // Auto-assign to current story
+                storyIds: [storyId], // Auto-assign to current story
             });
 
             if (result.success) {

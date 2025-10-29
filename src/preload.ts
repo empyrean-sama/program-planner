@@ -44,7 +44,9 @@ contextBridge.exposeInMainWorld('taskAPI', {
     addRelationship: (input: AddRelationshipInput) => ipcRenderer.invoke('task:addRelationship', input),
     removeRelationship: (input: RemoveRelationshipInput) => ipcRenderer.invoke('task:removeRelationship', input),
     getDependencyGraph: (taskId: string) => ipcRenderer.invoke('task:getDependencyGraph', taskId),
-    setStory: (taskId: string, storyId: string | undefined) => ipcRenderer.invoke('task:setStory', taskId, storyId),
+    setStories: (taskId: string, storyIds: string[]) => ipcRenderer.invoke('task:setStories', taskId, storyIds),
+    addToStory: (taskId: string, storyId: string) => ipcRenderer.invoke('task:addToStory', taskId, storyId),
+    removeFromStory: (taskId: string, storyId: string) => ipcRenderer.invoke('task:removeFromStory', taskId, storyId),
 });
 
 contextBridge.exposeInMainWorld('storyAPI', {

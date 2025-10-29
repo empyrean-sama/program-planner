@@ -39,7 +39,9 @@ export interface ITaskAPI {
     addRelationship: (input: AddRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     removeRelationship: (input: RemoveRelationshipInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     getDependencyGraph: (taskId: string) => Promise<{ success: boolean; data?: { nodes: Task[]; edges: { from: string; to: string }[] }; error?: string }>;
-    setStory: (taskId: string, storyId: string | undefined) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    setStories: (taskId: string, storyIds: string[]) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    addToStory: (taskId: string, storyId: string) => Promise<{ success: boolean; data?: Task; error?: string }>;
+    removeFromStory: (taskId: string, storyId: string) => Promise<{ success: boolean; data?: Task; error?: string }>;
 }
 
 export interface IStoryAPI {

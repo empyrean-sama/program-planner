@@ -108,8 +108,8 @@ export function VelocityChart({ data, period, onPeriodChange }: VelocityChartPro
                         }}
                     >
                         {data.map((point, index) => {
-                            const completedHeight = (point.completed / maxValue) * 100;
-                            const failedHeight = (point.failed / maxValue) * 100;
+                            const completedHeight = maxValue > 0 ? (point.completed / maxValue) * 100 : 0;
+                            const failedHeight = maxValue > 0 ? (point.failed / maxValue) * 100 : 0;
                             const barWidth = `${(100 / data.length) - 0.5}%`;
 
                             return (
@@ -204,47 +204,53 @@ export function VelocityChart({ data, period, onPeriodChange }: VelocityChartPro
                         })}
 
                         {/* Cumulative line overlay */}
-                        <svg
-                            style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                pointerEvents: 'none',
-                            }}
-                            viewBox="0 0 100 100"
-                            preserveAspectRatio="none"
-                        >
-                            <polyline
-                                points={data.map((point, index) => {
+                        {data.length > 0 && data.some(d => d.cumulative > 0) && (
+                            <svg
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    pointerEvents: 'none',
+                                }}
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                            >
+                                <polyline
+                                    points={data.map((point, index) => {
+                                        const x = ((index + 0.5) / data.length) * 100;
+                                        const maxCumulative = Math.max(...data.map(d => d.cumulative), 1);
+                                        const y = 100 - (point.cumulative / maxCumulative) * 100;
+                                        // Ensure valid number
+                                        const validY = isNaN(y) || !isFinite(y) ? 100 : y;
+                                        return `${x},${validY}`;
+                                    }).join(' ')}
+                                    fill="none"
+                                    stroke={theme.palette.primary.main}
+                                    strokeWidth="0.5"
+                                    opacity="0.8"
+                                    vectorEffect="non-scaling-stroke"
+                                />
+                                {data.map((point, index) => {
                                     const x = ((index + 0.5) / data.length) * 100;
                                     const maxCumulative = Math.max(...data.map(d => d.cumulative), 1);
                                     const y = 100 - (point.cumulative / maxCumulative) * 100;
-                                    return `${x},${y}`;
-                                }).join(' ')}
-                                fill="none"
-                                stroke={theme.palette.primary.main}
-                                strokeWidth="0.5"
-                                opacity="0.8"
-                                vectorEffect="non-scaling-stroke"
-                            />
-                            {data.map((point, index) => {
-                                const x = ((index + 0.5) / data.length) * 100;
-                                const maxCumulative = Math.max(...data.map(d => d.cumulative), 1);
-                                const y = 100 - (point.cumulative / maxCumulative) * 100;
-                                return (
-                                    <circle
-                                        key={index}
-                                        cx={x}
-                                        cy={y}
-                                        r="1"
-                                        fill={theme.palette.primary.main}
-                                        vectorEffect="non-scaling-stroke"
-                                    />
-                                );
-                            })}
-                        </svg>
+                                    // Ensure valid number
+                                    const validY = isNaN(y) || !isFinite(y) ? 100 : y;
+                                    return (
+                                        <circle
+                                            key={index}
+                                            cx={x}
+                                            cy={validY}
+                                            r="1"
+                                            fill={theme.palette.primary.main}
+                                            vectorEffect="non-scaling-stroke"
+                                        />
+                                    );
+                                })}
+                            </svg>
+                        )}
                     </Box>
 
                     {/* X-axis labels */}

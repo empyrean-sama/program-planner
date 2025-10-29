@@ -11,6 +11,9 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Chip,
+    Checkbox,
+    ListItemText,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -31,7 +34,7 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
     const [description, setDescription] = useState('');
     const [dueDateTime, setDueDateTime] = useState<Dayjs | null>(null);
     const [estimatedTime, setEstimatedTime] = useState('');
-    const [storyId, setStoryId] = useState('');
+    const [selectedStories, setSelectedStories] = useState<string[]>([]);
     const [stories, setStories] = useState<Story[]>([]);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -58,7 +61,7 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
         setDescription('');
         setDueDateTime(null);
         setEstimatedTime('');
-        setStoryId('');
+        setSelectedStories([]);
         setErrors({});
         onClose();
     };
@@ -92,7 +95,7 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
             description: description.trim(),
             dueDateTime: dueDateTime?.toISOString(),
             estimatedTime: estimatedTime ? Number(estimatedTime) : undefined,
-            storyId: storyId || undefined,
+            storyIds: selectedStories.length > 0 ? selectedStories : undefined,
         };
 
         const result = await window.taskAPI.createTask(input);
@@ -154,18 +157,27 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
                     />
 
                     <FormControl fullWidth>
-                        <InputLabel>Story (Optional)</InputLabel>
+                        <InputLabel>Stories (Optional)</InputLabel>
                         <Select
-                            value={storyId}
-                            label="Story (Optional)"
-                            onChange={(e) => setStoryId(e.target.value)}
+                            multiple
+                            value={selectedStories}
+                            label="Stories (Optional)"
+                            onChange={(e) => setSelectedStories(typeof e.target.value === 'string' ? [e.target.value] : e.target.value)}
+                            renderValue={(selected) => (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((value) => {
+                                        const story = stories.find(s => s.id === value);
+                                        return story ? (
+                                            <Chip key={value} label={story.title} size="small" />
+                                        ) : null;
+                                    })}
+                                </Box>
+                            )}
                         >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
                             {stories.map((story) => (
                                 <MenuItem key={story.id} value={story.id}>
-                                    {story.title} ({story.state})
+                                    <Checkbox checked={selectedStories.indexOf(story.id) > -1} />
+                                    <ListItemText primary={`${story.title} (${story.state})`} />
                                 </MenuItem>
                             ))}
                         </Select>

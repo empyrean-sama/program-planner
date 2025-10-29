@@ -65,7 +65,7 @@ export class StoryService {
      * Apply rule-based state calculation to a story
      */
     private applyStoryRules(story: Story): void {
-        const tasks = this.getTasksFn().filter(task => task.storyId === story.id);
+        const tasks = this.getTasksFn().filter(task => task.storyIds.includes(story.id));
         
         // Calculate total points
         story.totalPoints = tasks.reduce((sum, task) => sum + task.points, 0);
@@ -251,7 +251,7 @@ export class StoryService {
         }
 
         const allTasks = this.getTasksFn();
-        return allTasks.filter(task => task.storyId === storyId);
+        return allTasks.filter(task => task.storyIds.includes(storyId));
     }
 
     /**

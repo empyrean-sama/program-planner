@@ -76,9 +76,10 @@ export default function TaskDetailsPage() {
     const { showToast } = useAppGlobalState();
     const locationState = location.state as LocationState | null;
     const [task, setTask] = useState<Task | null>(null);
-    const [story, setStory] = useState<Story | null>(null);
-    const [allStories, setAllStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
+    const [story, setStory] = useState<Story | null>(null);
+    const [stories, setStories] = useState<Story[]>([]); // Stories this task belongs to
+    const [allStories, setAllStories] = useState<Story[]>([]);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
     const [storyDialogOpen, setStoryDialogOpen] = useState(false);
@@ -95,16 +96,16 @@ export default function TaskDetailsPage() {
 
     useEffect(() => {
         loadTask();
-        loadStories();
+        loadAllStories();
     }, [taskId]);
 
     useEffect(() => {
-        if (task?.storyId) {
-            loadStory(task.storyId);
+        if (task?.storyIds && task.storyIds.length > 0) {
+            loadStories(task.storyIds);
         } else {
-            setStory(null);
+            setStories([]);
         }
-    }, [task?.storyId]);
+    }, [task?.storyIds]);
 
     const loadTask = async () => {
         if (!taskId) return;
@@ -118,14 +119,18 @@ export default function TaskDetailsPage() {
         setLoading(false);
     };
 
-    const loadStory = async (storyId: string) => {
-        const result = await window.storyAPI.getStoryById(storyId);
-        if (result.success && result.data) {
-            setStory(result.data);
+    const loadStories = async (storyIds: string[]) => {
+        const loadedStories: Story[] = [];
+        for (const id of storyIds) {
+            const result = await window.storyAPI.getStoryById(id);
+            if (result.success && result.data) {
+                loadedStories.push(result.data);
+            }
         }
+        setStories(loadedStories);
     };
 
-    const loadStories = async () => {
+    const loadAllStories = async () => {
         const result = await window.storyAPI.getAllStories();
         if (result.success && result.data) {
             setAllStories(result.data.filter(s => s.state !== 'Finished'));
@@ -316,18 +321,34 @@ export default function TaskDetailsPage() {
         await saveTask(updatedTask);
     };
 
-    const handleAssignToStory = async (storyId: string) => {
+    const handleAddToStory = async (storyId: string) => {
         if (!task) return;
         
         try {
-            const result = await window.taskAPI.setStory(task.id, storyId || undefined);
+            const result = await window.taskAPI.addToStory(task.id, storyId);
             if (result.success && result.data) {
                 setTask(result.data);
-                showToast(storyId ? 'Task assigned to story' : 'Task removed from story', 'success');
-                setStoryDialogOpen(false);
-                loadStories();
+                showToast('Task added to story', 'success');
+                loadAllStories();
             } else {
-                showToast(result.error || 'Failed to update story', 'error');
+                showToast(result.error || 'Failed to add to story', 'error');
+            }
+        } catch (error) {
+            showToast('An error occurred', 'error');
+        }
+    };
+
+    const handleRemoveFromStory = async (storyId: string) => {
+        if (!task) return;
+        
+        try {
+            const result = await window.taskAPI.removeFromStory(task.id, storyId);
+            if (result.success && result.data) {
+                setTask(result.data);
+                showToast('Task removed from story', 'success');
+                loadAllStories();
+            } else {
+                showToast(result.error || 'Failed to remove from story', 'error');
             }
         } catch (error) {
             showToast('An error occurred', 'error');
@@ -481,17 +502,29 @@ export default function TaskDetailsPage() {
                             Filed: {dayjs(task.filingDateTime).format('MMM D, YYYY')}
                         </Typography>
                         
-                        {/* Story Badge */}
-                        {story ? (
-                            <Chip
-                                icon={<AutoStoriesIcon />}
-                                label={story.title}
-                                onClick={() => navigate(`/stories/${story.id}`)}
-                                onDelete={() => setStoryDialogOpen(true)}
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                            />
+                        {/* Story Badges */}
+                        {stories.length > 0 ? (
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                                {stories.map((s) => (
+                                    <Chip
+                                        key={s.id}
+                                        icon={<AutoStoriesIcon />}
+                                        label={s.title}
+                                        onClick={() => navigate(`/stories/${s.id}`)}
+                                        size="small"
+                                        color="primary"
+                                        variant="outlined"
+                                    />
+                                ))}
+                                <Button
+                                    startIcon={<AutoStoriesIcon />}
+                                    onClick={() => setStoryDialogOpen(true)}
+                                    size="small"
+                                    variant="text"
+                                >
+                                    Manage
+                                </Button>
+                            </Box>
                         ) : (
                             <Button
                                 startIcon={<AutoStoriesIcon />}
@@ -499,7 +532,7 @@ export default function TaskDetailsPage() {
                                 size="small"
                                 variant="outlined"
                             >
-                                Assign to Story
+                                Add to Story
                             </Button>
                         )}
                     </Stack>
@@ -748,67 +781,84 @@ export default function TaskDetailsPage() {
             />
 
             {/* Story Assignment Dialog */}
-            <Dialog open={storyDialogOpen} onClose={() => setStoryDialogOpen(false)} maxWidth="sm" fullWidth>
+            <Dialog open={storyDialogOpen} onClose={() => setStoryDialogOpen(false)} maxWidth="md" fullWidth>
                 <DialogTitle>
-                    {story ? 'Change Story Assignment' : 'Assign to Story'}
+                    Manage Story Assignments
                 </DialogTitle>
                 <DialogContent>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Story</InputLabel>
-                        <Select
-                            value={task.storyId || ''}
-                            label="Story"
-                            onChange={(e) => handleAssignToStory(e.target.value)}
-                        >
-                            <MenuItem value="">
-                                <em>No Story</em>
-                            </MenuItem>
-                            {allStories.map((s) => (
-                                <MenuItem key={s.id} value={s.id}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography>{s.title}</Typography>
-                                        <Chip label={s.state} size="small" />
-                                    </Box>
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    
-                    {story && (
-                        <Box sx={{ mt: 2 }}>
+                    {/* Current Stories */}
+                    {stories.length > 0 && (
+                        <Box sx={{ mb: 3 }}>
                             <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Current Story:
+                                Currently assigned to {stories.length} {stories.length === 1 ? 'story' : 'stories'}:
                             </Typography>
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <Box>
-                                            <Typography variant="subtitle1" fontWeight={600}>
-                                                {story.title}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {story.description}
-                                            </Typography>
-                                        </Box>
-                                        <Button
-                                            size="small"
-                                            startIcon={<OpenInNewIcon />}
-                                            onClick={() => {
-                                                setStoryDialogOpen(false);
-                                                navigate(`/stories/${story.id}`);
-                                            }}
-                                        >
-                                            View
-                                        </Button>
-                                    </Box>
-                                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                                        <Chip label={`${story.progress}% complete`} size="small" />
-                                        <Chip label={`${story.taskIds.length} tasks`} size="small" variant="outlined" />
-                                    </Box>
-                                </CardContent>
-                            </Card>
+                            <Stack spacing={1} sx={{ mt: 1 }}>
+                                {stories.map((s) => (
+                                    <Card key={s.id} variant="outlined">
+                                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <Typography variant="subtitle2" fontWeight={600}>
+                                                        {s.title}
+                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                                                        <Chip label={`${s.progress}% complete`} size="small" color="primary" />
+                                                        <Chip label={`${s.taskIds.length} tasks`} size="small" variant="outlined" />
+                                                    </Box>
+                                                </Box>
+                                                <Stack direction="row" spacing={1}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => navigate(`/stories/${s.id}`)}
+                                                        title="View story"
+                                                    >
+                                                        <OpenInNewIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={() => handleRemoveFromStory(s.id)}
+                                                        title="Remove from story"
+                                                    >
+                                                        <LinkOffIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Stack>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </Stack>
                         </Box>
                     )}
+                    
+                    {/* Add to New Story */}
+                    <Box>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Add to another story:
+                        </Typography>
+                        <FormControl fullWidth sx={{ mt: 1 }}>
+                            <InputLabel>Select Story</InputLabel>
+                            <Select
+                                value=""
+                                label="Select Story"
+                                onChange={(e) => {
+                                    handleAddToStory(e.target.value);
+                                    e.target.value = '';
+                                }}
+                            >
+                                {allStories
+                                    .filter((s) => !task.storyIds.includes(s.id))
+                                    .map((s) => (
+                                        <MenuItem key={s.id} value={s.id}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                                <Typography sx={{ flex: 1 }}>{s.title}</Typography>
+                                                <Chip label={s.state} size="small" />
+                                            </Box>
+                                        </MenuItem>
+                                    ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setStoryDialogOpen(false)}>Close</Button>

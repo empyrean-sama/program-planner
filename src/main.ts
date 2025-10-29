@@ -255,10 +255,28 @@ function setupTaskIpcHandlers() {
     }
   });
 
-  // Set task story
-  ipcMain.handle('task:setStory', async (_, taskId: string, storyId: string | undefined) => {
+  // Set task stories (replace all story associations)
+  ipcMain.handle('task:setStories', async (_, taskId: string, storyIds: string[]) => {
     try {
-      return { success: true, data: taskService.setTaskStory(taskId, storyId) };
+      return { success: true, data: taskService.setTaskStories(taskId, storyIds) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Add task to story
+  ipcMain.handle('task:addToStory', async (_, taskId: string, storyId: string) => {
+    try {
+      return { success: true, data: taskService.addTaskToStory(taskId, storyId) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Remove task from story
+  ipcMain.handle('task:removeFromStory', async (_, taskId: string, storyId: string) => {
+    try {
+      return { success: true, data: taskService.removeTaskFromStory(taskId, storyId) };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }
@@ -321,8 +339,8 @@ function setupStoryIpcHandlers() {
   ipcMain.handle('story:addTask', async (_, input: AddTaskToStoryInput) => {
     try {
       const story = await storyService.addTaskToStory(input);
-      // Update the task's storyId
-      await taskService.setTaskStory(input.taskId, input.storyId);
+      // Update the task's storyIds
+      await taskService.addTaskToStory(input.taskId, input.storyId);
       return { success: true, data: story };
     } catch (error) {
       return { success: false, error: (error as Error).message };
@@ -333,8 +351,8 @@ function setupStoryIpcHandlers() {
   ipcMain.handle('story:removeTask', async (_, input: RemoveTaskFromStoryInput) => {
     try {
       const story = await storyService.removeTaskFromStory(input);
-      // Remove the task's storyId
-      await taskService.setTaskStory(input.taskId, undefined);
+      // Remove the task from the story
+      await taskService.removeTaskFromStory(input.taskId, input.storyId);
       return { success: true, data: story };
     } catch (error) {
       return { success: false, error: (error as Error).message };
