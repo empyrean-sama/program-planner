@@ -22,5 +22,6 @@ export interface CalendarContextMenuCommand {
     icon?: React.ReactNode;
     action: (context: CalendarContextMenuContext) => void;
     disabled?: (context: CalendarContextMenuContext) => boolean;
+    hidden?: (context: CalendarContextMenuContext) => boolean;
     divider?: boolean;
 }

@@ -25,7 +25,7 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
                 });
             }
         },
-        disabled: (context: any) => !context.task, // Only enabled when a task is selected
+        hidden: (context: any) => !context.task, // Only show when a task is selected
     },
     {
         id: 'delete-schedule-entry',
@@ -37,7 +37,7 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
                 await context.onScheduleDeleted(context.task.id, context.scheduleEntryId);
             }
         },
-        disabled: (context: any) => !context.task || !context.scheduleEntryId, // Only enabled when on a scheduled task
+        hidden: (context: any) => !context.task || !context.scheduleEntryId, // Only show when on a scheduled task
     },
     {
         id: 'divider-1',
@@ -55,6 +55,7 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
                 context.openScheduleDialog(context.date, context.hour);
             }
         },
+        hidden: (context: any) => !!context.task, // Only show when NOT on a task card
     },
     {
         id: 'create-and-schedule',
@@ -66,5 +67,6 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
                 context.openQuickCreateDialog(context.date, context.hour);
             }
         },
+        hidden: (context: any) => !!context.task, // Only show when NOT on a task card
     },
 ];

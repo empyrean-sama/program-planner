@@ -71,20 +71,38 @@ export default function CalendarContextMenu({
             anchorOrigin={{ horizontal: 'left', vertical: 'top' }}
             transitionDuration={200}
         >
-            {commands.map((command) => {
-                if (command.divider) {
-                    return (
-                        <Divider
-                            key={command.id}
-                            sx={{
-                                my: 1,
-                                borderColor: alpha(theme.palette.divider, 0.5),
-                            }}
-                        />
-                    );
-                }
+            {commands
+                .filter((command) => {
+                    // Filter out hidden commands
+                    const isHidden = command.hidden ? command.hidden(context) : false;
+                    return !isHidden;
+                })
+                .filter((command, index, visibleCommands) => {
+                    // Filter out dividers that are at the start, end, or consecutive
+                    if (!command.divider) return true;
+                    
+                    // Remove if it's the first or last item
+                    if (index === 0 || index === visibleCommands.length - 1) return false;
+                    
+                    // Remove if the previous item is also a divider
+                    if (visibleCommands[index - 1]?.divider) return false;
+                    
+                    return true;
+                })
+                .map((command) => {
+                    if (command.divider) {
+                        return (
+                            <Divider
+                                key={command.id}
+                                sx={{
+                                    my: 1,
+                                    borderColor: alpha(theme.palette.divider, 0.5),
+                                }}
+                            />
+                        );
+                    }
 
-                const isDisabled = command.disabled ? command.disabled(context) : false;
+                    const isDisabled = command.disabled ? command.disabled(context) : false;
 
                 return (
                     <MenuItem
