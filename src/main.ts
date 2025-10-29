@@ -3,6 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { TaskService } from './services/TaskService';
 import { StoryService } from './services/StoryService';
+import { DataManagementService } from './services/DataManagementService';
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -27,6 +28,7 @@ if (started) {
 // Initialize services
 let taskService: TaskService;
 let storyService: StoryService;
+let dataManagementService: DataManagementService;
 
 const createWindow = () => {
   // Create the browser window.
@@ -75,6 +77,7 @@ const createWindow = () => {
 app.on('ready', () => {
   taskService = new TaskService();
   storyService = new StoryService(() => taskService.getAllTasksInternal());
+  dataManagementService = new DataManagementService(taskService, storyService);
   
   // Set up bidirectional communication
   taskService.setStoryStateCallback(() => storyService.recalculateStoryStates());
@@ -328,6 +331,16 @@ function setupStoryIpcHandlers() {
   // Delete story
   ipcMain.handle('story:delete', async (_, id: string) => {
     try {
+      // Get all tasks that reference this story before deleting
+      const allTasks = taskService.getAllTasks();
+      const tasksInStory = allTasks.filter(task => task.storyIds.includes(id));
+      
+      // Remove story reference from all tasks
+      for (const task of tasksInStory) {
+        await taskService.removeTaskFromStory(task.id, id);
+      }
+      
+      // Now delete the story
       const result = storyService.deleteStory(id);
       return { success: result, error: result ? undefined : 'Story not found' };
     } catch (error) {
@@ -390,6 +403,35 @@ function setupStoryIpcHandlers() {
   ipcMain.handle('story:destroyAllData', async () => {
     try {
       return storyService.destroyAllData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // ===== Unified Data Management Handlers =====
+  
+  // Export all data (tasks and stories)
+  ipcMain.handle('app:exportAllData', async () => {
+    try {
+      return dataManagementService.exportAllData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Import all data (tasks and stories)
+  ipcMain.handle('app:importAllData', async () => {
+    try {
+      return dataManagementService.importAllData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Get data statistics
+  ipcMain.handle('app:getDataStatistics', async () => {
+    try {
+      return { success: true, data: dataManagementService.getDataStatistics() };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }

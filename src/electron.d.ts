@@ -58,10 +58,24 @@ export interface IStoryAPI {
     destroyAllData: () => Promise<{ success: boolean; error?: string }>;
 }
 
+export interface IAppAPI {
+    exportAllData: () => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    importAllData: () => Promise<{ success: boolean; error?: string; warnings?: string[] }>;
+    getDataStatistics: () => Promise<{ 
+        success: boolean; 
+        data?: {
+            tasks: { total: number; byState: Record<string, number> };
+            stories: { total: number; byState: Record<string, number> };
+        }; 
+        error?: string 
+    }>;
+}
+
 declare global {
     interface Window {
         electron: IElectronAPI;
         taskAPI: ITaskAPI;
         storyAPI: IStoryAPI;
+        appAPI: IAppAPI;
     }
 }

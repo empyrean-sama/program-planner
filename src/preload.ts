@@ -62,3 +62,9 @@ contextBridge.exposeInMainWorld('storyAPI', {
     importData: () => ipcRenderer.invoke('story:importData'),
     destroyAllData: () => ipcRenderer.invoke('story:destroyAllData'),
 });
+
+contextBridge.exposeInMainWorld('appAPI', {
+    exportAllData: () => ipcRenderer.invoke('app:exportAllData'),
+    importAllData: () => ipcRenderer.invoke('app:importAllData'),
+    getDataStatistics: () => ipcRenderer.invoke('app:getDataStatistics'),
+});

@@ -477,8 +477,20 @@ export class TaskService {
                 return { success: false, error: 'Invalid file format: missing tasks array' };
             }
 
+            return this.importFromData(importData.tasks);
+        } catch (error) {
+            console.error('Error importing data:', error);
+            return { success: false, error: (error as Error).message };
+        }
+    }
+
+    /**
+     * Import tasks from a data array (used by DataManagementService)
+     */
+    importFromData(tasks: Task[]): { success: boolean; error?: string } {
+        try {
             // Replace current tasks with imported tasks
-            this.tasks = importData.tasks;
+            this.tasks = tasks;
             
             // Apply rules engine to all imported tasks
             this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
@@ -486,7 +498,7 @@ export class TaskService {
             this.saveTasks();
             return { success: true };
         } catch (error) {
-            console.error('Error importing data:', error);
+            console.error('Error importing tasks from data:', error);
             return { success: false, error: (error as Error).message };
         }
     }

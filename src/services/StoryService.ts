@@ -325,12 +325,24 @@ export class StoryService {
                 return { success: false, error: 'Invalid file format: missing stories array' };
             }
 
-            this.stories = importData.stories;
+            return this.importFromData(importData.stories);
+        } catch (error) {
+            console.error('Error importing stories:', error);
+            return { success: false, error: (error as Error).message };
+        }
+    }
+
+    /**
+     * Import stories from a data array (used by DataManagementService)
+     */
+    importFromData(stories: Story[]): { success: boolean; error?: string } {
+        try {
+            this.stories = stories;
             this.stories.forEach(story => this.applyStoryRules(story));
             this.saveStories();
             return { success: true };
         } catch (error) {
-            console.error('Error importing stories:', error);
+            console.error('Error importing stories from data:', error);
             return { success: false, error: (error as Error).message };
         }
     }

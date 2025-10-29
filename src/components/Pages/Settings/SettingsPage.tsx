@@ -29,11 +29,19 @@ export default function SettingsPage() {
 
     const handleDestroyData = async () => {
         try {
-            const result = await window.taskAPI.destroyAllData();
-            if (result.success) {
+            // Destroy both tasks and stories to completely wipe all application data
+            const [taskResult, storyResult] = await Promise.all([
+                window.taskAPI.destroyAllData(),
+                window.storyAPI.destroyAllData(),
+            ]);
+            
+            if (taskResult.success && storyResult.success) {
                 globalState.showToast('All data has been successfully destroyed', 'success', 4000);
             } else {
-                globalState.showToast('Failed to destroy data: ' + result.error, 'error', 5000);
+                const errors = [];
+                if (!taskResult.success) errors.push(`Tasks: ${taskResult.error}`);
+                if (!storyResult.success) errors.push(`Stories: ${storyResult.error}`);
+                globalState.showToast(`Failed to destroy data: ${errors.join(', ')}`, 'error', 5000);
             }
         } catch (error) {
             globalState.showToast('Error destroying data: ' + (error as Error).message, 'error', 5000);
@@ -43,9 +51,9 @@ export default function SettingsPage() {
 
     const handleExportData = async () => {
         try {
-            const result = await window.taskAPI.exportData();
+            const result = await window.appAPI.exportAllData();
             if (result.success) {
-                globalState.showToast('Data exported successfully to: ' + result.filePath, 'success', 5000);
+                globalState.showToast('All data exported successfully to: ' + result.filePath, 'success', 5000);
             } else {
                 globalState.showToast('Failed to export data: ' + result.error, 'error', 5000);
             }
@@ -56,9 +64,13 @@ export default function SettingsPage() {
 
     const handleImportData = async () => {
         try {
-            const result = await window.taskAPI.importData();
+            const result = await window.appAPI.importAllData();
             if (result.success) {
-                globalState.showToast('Data imported successfully', 'success', 4000);
+                let message = 'All data imported successfully';
+                if (result.warnings && result.warnings.length > 0) {
+                    message += ' (Warnings: ' + result.warnings.join(', ') + ')';
+                }
+                globalState.showToast(message, 'success', 5000);
             } else {
                 globalState.showToast('Failed to import data: ' + result.error, 'error', 5000);
             }
@@ -89,10 +101,10 @@ export default function SettingsPage() {
                             onClick={handleExportData}
                             sx={{ mr: 2 }}
                         >
-                            Export Data
+                            Export All Data
                         </Button>
                         <Typography variant="caption" color="text.secondary">
-                            Export all your tasks and data to a JSON file
+                            Export all your tasks and stories to a single JSON file
                         </Typography>
                     </Box>
 
@@ -103,10 +115,10 @@ export default function SettingsPage() {
                             onClick={handleImportData}
                             sx={{ mr: 2 }}
                         >
-                            Import Data
+                            Import All Data
                         </Button>
                         <Typography variant="caption" color="text.secondary">
-                            Import tasks and data from a JSON file
+                            Import tasks and stories from a JSON file (supports both unified and legacy formats)
                         </Typography>
                     </Box>
 
@@ -123,7 +135,7 @@ export default function SettingsPage() {
                             Destroy All Data
                         </Button>
                         <Typography variant="caption" color="error">
-                            Permanently delete all tasks and application data
+                            Permanently delete all tasks, stories, and application data
                         </Typography>
                     </Box>
                 </Stack>
@@ -145,7 +157,7 @@ export default function SettingsPage() {
                         This action cannot be undone!
                     </Alert>
                     <Typography>
-                        Are you sure you want to permanently delete all your tasks, schedule entries, 
+                        Are you sure you want to permanently delete all your tasks, stories, schedule entries, 
                         comments, and application data? This will reset the application to its initial state.
                     </Typography>
                 </DialogContent>
