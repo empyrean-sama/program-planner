@@ -6,11 +6,14 @@ import {
     Typography,
     Chip,
     Box,
+    Tooltip,
 } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventIcon from '@mui/icons-material/Event';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Task } from '../../../types/Task';
 import dayjs from 'dayjs';
+import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
 
 interface TaskCardProps {
     task: Task;
@@ -18,33 +21,72 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, onClick }: TaskCardProps) {
-    const getStateColor = (state: string): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' => {
-        switch (state) {
-            case 'Filed': return 'default';
-            case 'Scheduled': return 'info';
-            case 'Doing': return 'primary';
-            case 'Finished': return 'success';
-            case 'Failed': return 'error';
-            case 'Deferred': return 'warning';
-            case 'Removed': return 'default';
-            default: return 'default';
-        }
-    };
+    // Get appearance from rules engine
+    const appearance = getTaskCardAppearance(task);
+    const warningMessages = getWarningMessages(appearance.warnings);
+    const isRemoved = task.state === 'Removed';
 
     return (
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardActionArea onClick={() => onClick(task)} sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+        <Card 
+            sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                ...appearance.styles.backgroundColor && { backgroundColor: appearance.styles.backgroundColor },
+                ...appearance.styles.backgroundImage && { backgroundImage: appearance.styles.backgroundImage },
+                ...appearance.styles.opacity && { opacity: appearance.styles.opacity },
+                ...appearance.styles.borderColor && {
+                    border: `${appearance.styles.borderWidth}px ${appearance.styles.borderStyle} ${appearance.styles.borderColor}`,
+                },
+            }}
+        >
+            <CardActionArea 
+                onClick={() => onClick(task)} 
+                sx={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'stretch',
+                }}
+            >
                 <CardContent sx={{ flex: 1, width: '100%' }}>
                     {/* Title and State */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Typography variant="h6" component="div" sx={{ flex: 1, mr: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, gap: 1 }}>
+                        <Typography 
+                            variant="h6" 
+                            component="div" 
+                            sx={{ 
+                                flex: 1,
+                                ...(isRemoved && { textDecoration: 'line-through' }),
+                            }}
+                        >
                             {task.title}
                         </Typography>
-                        <Chip
-                            label={task.state}
-                            color={getStateColor(task.state)}
-                            size="small"
-                        />
+                        
+                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                            {appearance.showWarningIcon && (
+                                <Tooltip title={
+                                    <Box>
+                                        {warningMessages.map((msg, idx) => (
+                                            <Typography key={idx} variant="caption" display="block">
+                                                • {msg}
+                                            </Typography>
+                                        ))}
+                                    </Box>
+                                } arrow>
+                                    <WarningAmberIcon 
+                                        color={appearance.warningIconColor}
+                                        sx={{ fontSize: 20 }}
+                                    />
+                                </Tooltip>
+                            )}
+                            
+                            <Chip
+                                label={task.state}
+                                color={appearance.chipColor}
+                                size="small"
+                            />
+                        </Box>
                     </Box>
 
                     {/* Description */}
@@ -58,11 +100,50 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            minHeight: '2.5em'
+                            minHeight: '2.5em',
+                            ...(isRemoved && { textDecoration: 'line-through' }),
                         }}
                     >
                         {task.description}
                     </Typography>
+
+                    {/* Progress Bar for Scheduled/Doing tasks with estimates */}
+                    {appearance.metrics.hasEstimate && appearance.metrics.hasSchedule && 
+                     ['Scheduled', 'Doing'].includes(task.state) && (
+                        <Box sx={{ mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Progress
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    {task.elapsedTime}m / {task.estimatedTime}m 
+                                    ({Math.round(appearance.metrics.progressPercentage)}%)
+                                </Typography>
+                            </Box>
+                            <Box 
+                                sx={{ 
+                                    width: '100%', 
+                                    height: 6, 
+                                    bgcolor: 'rgba(0,0,0,0.1)', 
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                <Box 
+                                    sx={{ 
+                                        width: `${Math.min(100, appearance.metrics.progressPercentage)}%`,
+                                        height: '100%',
+                                        bgcolor: appearance.metrics.exceedsEstimate 
+                                            ? 'error.main' 
+                                            : appearance.metrics.progressPercentage > 80 
+                                                ? 'warning.main' 
+                                                : 'success.main',
+                                        transition: 'width 0.3s ease',
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                    )}
 
                     {/* Points Badge */}
                     {task.points > 0 && (
@@ -72,6 +153,9 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
                                 size="small"
                                 variant="outlined"
                                 color="primary"
+                                sx={{
+                                    ...(isRemoved && { textDecoration: 'line-through' }),
+                                }}
                             />
                         </Box>
                     )}
@@ -80,8 +164,20 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         {task.dueDateTime && (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <EventIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                <Typography variant="caption" color="text.secondary">
+                                <EventIcon 
+                                    sx={{ 
+                                        fontSize: 16, 
+                                        color: appearance.warnings.overdue ? 'error.main' : 'text.secondary',
+                                    }} 
+                                />
+                                <Typography 
+                                    variant="caption" 
+                                    sx={{
+                                        color: appearance.warnings.overdue ? 'error.main' : 'text.secondary',
+                                        fontWeight: appearance.warnings.overdue ? 600 : 400,
+                                        ...(isRemoved && { textDecoration: 'line-through' }),
+                                    }}
+                                >
                                     Due: {dayjs(task.dueDateTime).format('MMM D, YYYY h:mm A')}
                                 </Typography>
                             </Box>
@@ -91,19 +187,48 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
                             {task.estimatedTime && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography 
+                                        variant="caption" 
+                                        color="text.secondary"
+                                        sx={{
+                                            ...(isRemoved && { textDecoration: 'line-through' }),
+                                        }}
+                                    >
                                         Est: {task.estimatedTime}m
                                     </Typography>
                                 </Box>
                             )}
                             
                             {task.elapsedTime > 0 && (
-                                <Typography variant="caption" color="text.secondary">
+                                <Typography 
+                                    variant="caption" 
+                                    sx={{
+                                        color: appearance.metrics.exceedsEstimate ? 'error.main' : 'text.secondary',
+                                        fontWeight: appearance.metrics.exceedsEstimate ? 600 : 400,
+                                        ...(isRemoved && { textDecoration: 'line-through' }),
+                                    }}
+                                >
                                     • Elapsed: {task.elapsedTime}m
                                 </Typography>
                             )}
                         </Box>
                     </Box>
+
+                    {/* Warning Messages */}
+                    {warningMessages.length > 0 && !isRemoved && (
+                        <Box sx={{ mt: 1.5, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
+                            {warningMessages.map((message, idx) => (
+                                <Typography 
+                                    key={idx}
+                                    variant="caption" 
+                                    color={(appearance.warnings.overdue || appearance.warnings.scheduleBeyondDueDate) ? 'error.main' : 'warning.main'}
+                                    sx={{ display: 'block', fontWeight: 500 }}
+                                >
+                                    ⚠ {message}
+                                </Typography>
+                            ))}
+                        </Box>
+                    )}
                 </CardContent>
             </CardActionArea>
         </Card>

@@ -22,10 +22,12 @@ import {
     ListItem,
     ListItemText,
     CircularProgress,
+    Alert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -35,6 +37,7 @@ import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
 import MarkdownTextarea from '../../Common/MarkdownTextarea';
+import { getTaskCardAppearance, getWarningMessages } from '../../../services/TaskCardRulesEngine';
 
 // User can only set these states
 const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
@@ -221,6 +224,10 @@ export default function TaskDetailsPage() {
         );
     }
 
+    // Get task appearance and warnings
+    const appearance = getTaskCardAppearance(task);
+    const warningMessages = getWarningMessages(appearance.warnings);
+
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3, overflow: 'auto' }}>
             {/* Header */}
@@ -236,6 +243,62 @@ export default function TaskDetailsPage() {
                     </Box>
                 )}
             </Box>
+
+            {/* Warnings Section */}
+            {warningMessages.length > 0 && (
+                <Alert 
+                    severity={(appearance.warnings.overdue || appearance.warnings.scheduleBeyondDueDate) ? 'error' : 'warning'}
+                    icon={<WarningAmberIcon />}
+                    sx={{ mb: 3 }}
+                >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        Task Warnings
+                    </Typography>
+                    {warningMessages.map((message, idx) => (
+                        <Typography key={idx} variant="body2">
+                            • {message}
+                        </Typography>
+                    ))}
+                </Alert>
+            )}
+
+            {/* Progress Metrics for Scheduled/Doing tasks */}
+            {appearance.metrics.hasEstimate && appearance.metrics.hasSchedule && 
+             ['Scheduled', 'Doing'].includes(task.state) && (
+                <Paper sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle2">
+                            Progress Tracking
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {task.elapsedTime}m / {task.estimatedTime}m 
+                            ({Math.round(appearance.metrics.progressPercentage)}%)
+                        </Typography>
+                    </Box>
+                    <Box 
+                        sx={{ 
+                            width: '100%', 
+                            height: 8, 
+                            bgcolor: 'rgba(0,0,0,0.1)', 
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <Box 
+                            sx={{ 
+                                width: `${Math.min(100, appearance.metrics.progressPercentage)}%`,
+                                height: '100%',
+                                bgcolor: appearance.metrics.exceedsEstimate 
+                                    ? 'error.main' 
+                                    : appearance.metrics.progressPercentage > 80 
+                                        ? 'warning.main' 
+                                        : 'success.main',
+                                transition: 'width 0.3s ease',
+                            }}
+                        />
+                    </Box>
+                </Paper>
+            )}
 
             <Box sx={{ maxWidth: 1200, width: '100%', mx: 'auto' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
