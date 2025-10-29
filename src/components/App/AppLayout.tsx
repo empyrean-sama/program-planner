@@ -6,6 +6,7 @@ import HomePage from '../Pages/Home/HomePage';
 import CalendarPage from '../Pages/Calendar/CalendarPage';
 import TasksPage from '../Pages/Tasks/TasksPage';
 import TaskDetailsPage from '../Pages/Tasks/TaskDetailsPage';
+import MetricsPage from '../Pages/Metrics/MetricsPage';
 
 export default function AppLayout() {
     const router = createBrowserRouter(createRoutesFromElements(
@@ -14,6 +15,7 @@ export default function AppLayout() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="tasks/:taskId" element={<TaskDetailsPage />} />
+            <Route path="metrics" element={<MetricsPage />} />
             <Route path="*" element={<NotFoundErrorPage />} />
         </Route>
     ));

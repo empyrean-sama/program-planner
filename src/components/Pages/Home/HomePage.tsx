@@ -2,6 +2,7 @@ import { Container, Box, Typography, Paper, Button, Stack } from '@mui/material'
 import { useTheme } from '@mui/material/styles';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import HomeTile from './HomeTile';
 import TextBubble from './TextBubble';
 
@@ -42,6 +43,15 @@ export default function HomePage() {
                         buttonText="View Tasks"
                         color={theme.palette.secondary.main}
                         buttonColor='secondary'
+                    />
+                    <HomeTile 
+                        title="Metrics"
+                        description="Analyze your productivity and progress"
+                        icon={BarChartIcon}
+                        link="/metrics"
+                        buttonText="View Metrics"
+                        color={theme.palette.success.main}
+                        buttonColor='success'
                     />
                 </Stack>
                 <TextBubble title='Getting Started' content='To get started with Program Planner, navigate to the Calendar or Tasks sections using the tiles above. You can add events to your calendar and create tasks to keep track of your to-dos. Explore the settings to customize your experience.' />
