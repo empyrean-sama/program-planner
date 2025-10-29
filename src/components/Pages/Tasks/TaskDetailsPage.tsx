@@ -34,6 +34,7 @@ import { useParams, useNavigate, useLocation } from 'react-router';
 import { Task, TaskState } from '../../../types/Task';
 import ScheduleEntryDialog from './ScheduleEntryDialog';
 import CommentDialog from './CommentDialog';
+import MarkdownTextarea from '../../Common/MarkdownTextarea';
 
 // User can only set these states
 const userSettableStates: TaskState[] = ['Removed', 'Finished', 'Deferred', 'Failed'];
@@ -252,13 +253,12 @@ export default function TaskDetailsPage() {
                             />
 
                             {/* Description */}
-                            <TextField
+                            <MarkdownTextarea
                                 label="Description"
-                                fullWidth
-                                multiline
-                                rows={4}
                                 value={task.description}
-                                onChange={(e) => handleFieldChange('description', e.target.value)}
+                                onChange={(value) => handleFieldChange('description', value)}
+                                rows={6}
+                                placeholder="Enter task description... Supports markdown formatting"
                             />
 
                             {/* Due Date & Time */}
@@ -375,11 +375,17 @@ export default function TaskDetailsPage() {
                             <List>
                                 {task.comments.map((comment, index) => (
                                     <React.Fragment key={comment.id}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary={comment.text}
-                                                secondary={dayjs(comment.createdAt).format('MMM D, YYYY h:mm A')}
+                                        <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                                            <MarkdownTextarea
+                                                value={comment.text}
+                                                onChange={() => {}} // Read-only
+                                                disabled
+                                                rows={1}
+                                                fullWidth
                                             />
+                                            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                                                {dayjs(comment.createdAt).format('MMM D, YYYY h:mm A')}
+                                            </Typography>
                                         </ListItem>
                                         {index < task.comments.length - 1 && <Divider />}
                                     </React.Fragment>

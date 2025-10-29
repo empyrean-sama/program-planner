@@ -13,6 +13,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { CreateTaskInput } from '../../../types/Task';
+import MarkdownTextarea from '../../Common/MarkdownTextarea';
 
 interface TaskDialogProps {
     open: boolean;
@@ -91,14 +92,12 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
                         helperText={errors.title}
                     />
 
-                    <TextField
+                    <MarkdownTextarea
                         label="Description"
-                        fullWidth
-                        required
-                        multiline
-                        rows={4}
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={setDescription}
+                        rows={6}
+                        placeholder="Enter task description... Supports markdown formatting"
                         error={!!errors.description}
                         helperText={errors.description}
                     />

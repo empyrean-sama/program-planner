@@ -5,9 +5,9 @@ import {
     DialogContent,
     DialogActions,
     Button,
-    TextField,
     Box,
 } from '@mui/material';
+import MarkdownTextarea from '../../Common/MarkdownTextarea';
 
 interface CommentDialogProps {
     open: boolean;
@@ -55,13 +55,12 @@ export default function CommentDialog({
             <DialogTitle>Add Comment</DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
-                    <TextField
+                    <MarkdownTextarea
                         label="Comment"
-                        fullWidth
-                        multiline
-                        rows={4}
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
+                        onChange={setComment}
+                        rows={6}
+                        placeholder="Enter your comment... Supports markdown formatting"
                         error={!!error}
                         helperText={error}
                     />
