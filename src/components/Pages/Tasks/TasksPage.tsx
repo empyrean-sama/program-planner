@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Button,
     Typography,
-    Tabs,
-    Tab,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router';
-import { Task, TaskState } from '../../../types/Task';
+import { Task } from '../../../types/Task';
 import { TaskCardGrid } from './TaskCard';
 import TaskDialog from './TaskDialog';
-
-const taskStates: TaskState[] = ['Filed', 'Scheduled', 'Doing', 'Finished', 'Failed', 'Deferred', 'Removed'];
+import TaskFilterBar, { TaskFilters } from './TaskFilterBar';
+import { filterAndSortTasks } from '../../../utils/taskFiltering';
 
 export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [selectedTab, setSelectedTab] = useState(0);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const navigate = useNavigate();
+    
+    // Filter state
+    const [filters, setFilters] = useState<TaskFilters>({
+        searchText: '',
+        states: [],
+        sortBy: 'filingDate-desc',
+        dateRangeStart: null,
+        dateRangeEnd: null,
+        dateRangeField: 'filing',
+        hasDeadline: undefined,
+        hasSchedule: undefined,
+        hasComments: undefined,
+        minPoints: undefined,
+        maxPoints: undefined,
+    });
 
     useEffect(() => {
         loadTasks();
@@ -44,13 +56,10 @@ export default function TasksPage() {
         navigate(`/tasks/${task.id}`);
     };
 
-    const getFilteredTasks = (): Task[] => {
-        if (selectedTab === 0) {
-            return tasks; // All tasks
-        }
-        const state = taskStates[selectedTab - 1];
-        return tasks.filter(task => task.state === state);
-    };
+    // Memoized filtered and sorted tasks for performance
+    const filteredTasks = useMemo(() => {
+        return filterAndSortTasks(tasks, filters);
+    }, [tasks, filters]);
 
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
@@ -65,20 +74,17 @@ export default function TasksPage() {
                 </Button>
             </Box>
 
-            <Tabs
-                value={selectedTab}
-                onChange={(_, newValue) => setSelectedTab(newValue)}
-                sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
-            >
-                <Tab label={`All (${tasks.length})`} />
-                {taskStates.map(state => {
-                    const count = tasks.filter(t => t.state === state).length;
-                    return <Tab key={state} label={`${state} (${count})`} />;
-                })}
-            </Tabs>
+            {/* Filter Bar */}
+            <TaskFilterBar
+                filters={filters}
+                onChange={setFilters}
+                taskCount={tasks.length}
+                filteredCount={filteredTasks.length}
+            />
 
-            <Box sx={{ flex: 1, overflow: 'auto', mt: 2 }}>
-                <TaskCardGrid tasks={getFilteredTasks()} onTaskClick={handleTaskClick} />
+            {/* Task Grid */}
+            <Box sx={{ flex: 1, overflow: 'auto' }}>
+                <TaskCardGrid tasks={filteredTasks} onTaskClick={handleTaskClick} />
             </Box>
 
             <TaskDialog
