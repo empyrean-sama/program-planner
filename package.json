@@ -36,8 +36,12 @@
     "@typescript-eslint/parser": "^5.62.0",
     "@vitejs/plugin-react": "^5.1.0",
     "electron": "39.0.0",
+    "electron-icon-builder": "^2.0.1",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.32.0",
+    "png-to-ico": "^3.0.1",
+    "png2icons": "^2.0.1",
+    "sharp": "^0.34.4",
     "typescript": "~4.5.4",
     "vite": "^5.4.21"
   },
