@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -54,26 +54,13 @@ export default function TaskDetailsPage() {
     const location = useLocation();
     const locationState = location.state as LocationState | null;
     const [task, setTask] = useState<Task | null>(null);
-    const [originalTask, setOriginalTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [commentDialogOpen, setCommentDialogOpen] = useState(false);
     const [saveError, setSaveError] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleBack = () => {
-        // If we came from calendar, navigate back to calendar with the correct view and date
-        if (locationState?.from === '/calendar' && locationState.calendarView && locationState.calendarDate) {
-            navigate('/calendar', {
-                state: {
-                    view: locationState.calendarView,
-                    date: locationState.calendarDate,
-                },
-            });
-        } else {
-            // Default to tasks page
-            navigate('/tasks');
-        }
-    };
     useEffect(() => {
         loadTask();
     }, [taskId]);
@@ -85,48 +72,114 @@ export default function TaskDetailsPage() {
         const result = await window.taskAPI.getTaskById(taskId);
         if (result.success && result.data) {
             setTask(result.data);
-            setOriginalTask(result.data);
         }
         setLoading(false);
     };
 
-    const hasChanges = (): boolean => {
-        if (!task || !originalTask) return false;
-        
-        return (
-            task.title !== originalTask.title ||
-            task.description !== originalTask.description ||
-            task.state !== originalTask.state ||
-            task.dueDateTime !== originalTask.dueDateTime
-        );
-    };
-
     const isInFinalState = (): boolean => {
-        if (!originalTask) return false;
-        return finalStates.includes(originalTask.state);
+        if (!task) return false;
+        return finalStates.includes(task.state);
     };
 
-    const handleFieldChange = (field: keyof Task, value: any) => {
-        if (!task) return;
-        setTask(prev => prev ? { ...prev, [field]: value } : null);
-    };
+    // Auto-save function with debouncing
+    const saveTask = useCallback(async (updatedTask: Task) => {
+        if (!updatedTask) return;
 
-    const handleSave = async () => {
-        if (!task) return;
-
+        setIsSaving(true);
         setSaveError('');
         const result = await window.taskAPI.updateTask({
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            state: task.state,
-            dueDateTime: task.dueDateTime,
+            id: updatedTask.id,
+            title: updatedTask.title,
+            description: updatedTask.description,
+            state: updatedTask.state,
+            dueDateTime: updatedTask.dueDateTime,
         });
 
-        if (result.success) {
-            loadTask();
-        } else {
+        setIsSaving(false);
+        if (!result.success) {
             setSaveError(result.error || 'Failed to save task');
+            // Reload to restore valid state
+            loadTask();
+        }
+    }, []);
+
+    // Debounced save for text fields (500ms delay)
+    const debouncedSave = useCallback((updatedTask: Task) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+            saveTask(updatedTask);
+        }, 500);
+    }, [saveTask]);
+
+    // Immediate save for non-text fields
+    const immediateSave = useCallback((updatedTask: Task) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        saveTask(updatedTask);
+    }, [saveTask]);
+
+    // Handle field changes with appropriate save strategy
+    const handleFieldChange = (field: keyof Task, value: any, immediate: boolean = false) => {
+        if (!task) return;
+        const updatedTask = { ...task, [field]: value };
+        setTask(updatedTask);
+
+        // Use immediate save for dropdowns/pickers, debounced for text
+        if (immediate) {
+            immediateSave(updatedTask);
+        } else {
+            debouncedSave(updatedTask);
+        }
+    };
+
+    // Save on blur for text fields
+    const handleBlur = () => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        if (task) {
+            saveTask(task);
+        }
+    };
+
+    // Save on page navigation/unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    // Save before navigating away
+    const handleBack = () => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        if (task) {
+            saveTask(task).then(() => {
+                navigateBack();
+            });
+        } else {
+            navigateBack();
+        }
+    };
+
+    const navigateBack = () => {
+        // If we came from calendar, navigate back to calendar with the correct view and date
+        if (locationState?.from === '/calendar' && locationState.calendarView && locationState.calendarDate) {
+            navigate('/calendar', {
+                state: {
+                    view: locationState.calendarView,
+                    date: locationState.calendarDate,
+                },
+            });
+        } else {
+            // Default to tasks page
+            navigate('/tasks');
         }
     };
 
@@ -176,13 +229,12 @@ export default function TaskDetailsPage() {
                     <ArrowBackIcon />
                 </IconButton>
                 <Typography variant="h4" sx={{ flex: 1 }}>Task Details</Typography>
-                <Button 
-                    onClick={handleSave} 
-                    variant="contained"
-                    disabled={!hasChanges()}
-                >
-                    Save Changes
-                </Button>
+                {isSaving && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        <Typography variant="body2" color="text.secondary">Saving...</Typography>
+                    </Box>
+                )}
             </Box>
 
             <Box sx={{ maxWidth: 1200, width: '100%', mx: 'auto' }}>
@@ -227,7 +279,7 @@ export default function TaskDetailsPage() {
                                 <Select
                                     value={userSettableStates.includes(task.state) ? task.state : ''}
                                     label="Set Final State (Optional)"
-                                    onChange={(e) => handleFieldChange('state', e.target.value as TaskState)}
+                                    onChange={(e) => handleFieldChange('state', e.target.value as TaskState, true)}
                                 >
                                     <MenuItem value="">
                                         <em>Keep system-managed state</em>
@@ -250,6 +302,7 @@ export default function TaskDetailsPage() {
                                 fullWidth
                                 value={task.title}
                                 onChange={(e) => handleFieldChange('title', e.target.value)}
+                                onBlur={handleBlur}
                             />
 
                             {/* Description */}
@@ -257,6 +310,7 @@ export default function TaskDetailsPage() {
                                 label="Description"
                                 value={task.description}
                                 onChange={(value) => handleFieldChange('description', value)}
+                                onBlur={handleBlur}
                                 rows={6}
                                 placeholder="Enter task description... Supports markdown formatting"
                             />
@@ -267,7 +321,7 @@ export default function TaskDetailsPage() {
                                     label="Due Date & Time"
                                     value={task.dueDateTime ? dayjs(task.dueDateTime) : null}
                                     onChange={(newValue: Dayjs | null) => 
-                                        handleFieldChange('dueDateTime', newValue?.toISOString())
+                                        handleFieldChange('dueDateTime', newValue?.toISOString(), true)
                                     }
                                     slotProps={{
                                         textField: {

@@ -15,6 +15,7 @@ interface MarkdownTextareaProps {
     disabled?: boolean;
     error?: boolean;
     helperText?: string;
+    onBlur?: () => void;
 }
 
 export default function MarkdownTextarea({
@@ -30,6 +31,7 @@ export default function MarkdownTextarea({
     disabled = false,
     error = false,
     helperText,
+    onBlur,
 }: MarkdownTextareaProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [currentLine, setCurrentLine] = useState(0);
@@ -58,6 +60,11 @@ export default function MarkdownTextarea({
             setIsEditing(false);
             setEditableLines(new Set());
         }, 100);
+        
+        // Call the onBlur prop if provided
+        if (onBlur) {
+            onBlur();
+        }
     };
 
     const updateCurrentLine = () => {
