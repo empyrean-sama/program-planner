@@ -44,10 +44,12 @@ export default function TimeSlotColumn({
     const location = useLocation();
     const [draggedEvent, setDraggedEvent] = useState<TaskCalendarEvent | null>(null);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [dragPreview, setDragPreview] = useState<{ top: number; height: number } | null>(null);
     const [resizingEvent, setResizingEvent] = useState<{ event: TaskCalendarEvent; type: 'top' | 'bottom' } | null>(null);
     const [resizeStart, setResizeStart] = useState<{ y: number; originalTop: number; originalHeight: number } | null>(null);
     const [resizePreview, setResizePreview] = useState<{ top: number; height: number } | null>(null);
     const currentMouseY = useRef<number>(0);
+    const currentDragY = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Check if a task schedule violates deadline or estimate
@@ -113,6 +115,24 @@ export default function TimeSlotColumn({
     const handleDragOver = (event: React.DragEvent) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
+        
+        if (!day || !draggedEvent || !containerRef.current) return;
+
+        // Track current drag position
+        const rect = containerRef.current.getBoundingClientRect();
+        const dragY = event.clientY - rect.top - dragOffset.y;
+        currentDragY.current = dragY;
+
+        // Calculate preview position with snapping
+        const hourOffset = dragY / hourHeight;
+        const totalMinutes = hourOffset * 60;
+        const snappedMinutes = Math.round(totalMinutes / 10) * 10;
+        
+        const previewTop = (snappedMinutes / 60) * hourHeight;
+        const duration = draggedEvent.endTime.diff(draggedEvent.startTime, 'minute');
+        const previewHeight = (duration / 60) * hourHeight;
+
+        setDragPreview({ top: previewTop, height: previewHeight });
     };
 
     const handleDrop = async (event: React.DragEvent) => {
@@ -130,7 +150,12 @@ export default function TimeSlotColumn({
         // Calculate new start time based on drop position
         const hourOffset = dropY / hourHeight;
         const dayStart = day.startOf('day');
-        const newStartTime = dayStart.add(hourOffset, 'hour');
+        
+        // Snap to 10-minute increments
+        const totalMinutes = hourOffset * 60;
+        const snappedMinutes = Math.round(totalMinutes / 10) * 10;
+        
+        const newStartTime = dayStart.add(snappedMinutes, 'minute');
         const newEndTime = newStartTime.add(duration, 'minute');
 
         // Update the schedule entry
@@ -144,6 +169,7 @@ export default function TimeSlotColumn({
             
             // Clear dragged event state before reloading to prevent visual artifacts
             setDraggedEvent(null);
+            setDragPreview(null);
             
             // Trigger parent to refresh all columns
             if (onTasksUpdate) {
@@ -152,6 +178,7 @@ export default function TimeSlotColumn({
         } catch (error) {
             console.error('Failed to update schedule entry:', error);
             setDraggedEvent(null);
+            setDragPreview(null);
         }
     };
 
@@ -179,7 +206,10 @@ export default function TimeSlotColumn({
 
             // Calculate preview position and height
             const deltaY = event.clientY - resizeStart.y;
-            const deltaHours = deltaY / hourHeight;
+            const deltaMinutes = (deltaY / hourHeight) * 60;
+            
+            // Snap to 10-minute increments
+            const snappedDeltaMinutes = Math.round(deltaMinutes / 10) * 10;
 
             let newStartTime = resizingEvent.event.startTime;
             let newEndTime = resizingEvent.event.endTime;
@@ -188,7 +218,7 @@ export default function TimeSlotColumn({
 
             if (resizingEvent.type === 'top') {
                 // Resizing from top - adjust start time
-                newStartTime = resizingEvent.event.startTime.add(deltaHours, 'hour');
+                newStartTime = resizingEvent.event.startTime.add(snappedDeltaMinutes, 'minute');
                 // Ensure minimum 15-minute duration
                 if (newEndTime.diff(newStartTime, 'minute') < 15) {
                     newStartTime = newEndTime.subtract(15, 'minute');
@@ -202,7 +232,7 @@ export default function TimeSlotColumn({
                 previewHeight = Math.max(duration * hourHeight, 20);
             } else {
                 // Resizing from bottom - adjust end time
-                newEndTime = resizingEvent.event.endTime.add(deltaHours, 'hour');
+                newEndTime = resizingEvent.event.endTime.add(snappedDeltaMinutes, 'minute');
                 // Ensure minimum 15-minute duration
                 if (newEndTime.diff(newStartTime, 'minute') < 15) {
                     newEndTime = newStartTime.add(15, 'minute');
@@ -227,21 +257,24 @@ export default function TimeSlotColumn({
 
             // Calculate the actual delta from start to current mouse position
             const deltaY = currentMouseY.current - resizeStart.y;
-            const deltaHours = deltaY / hourHeight;
+            const deltaMinutes = (deltaY / hourHeight) * 60;
+            
+            // Snap to 10-minute increments
+            const snappedDeltaMinutes = Math.round(deltaMinutes / 10) * 10;
 
             let newStartTime = resizingEvent.event.startTime;
             let newEndTime = resizingEvent.event.endTime;
 
             if (resizingEvent.type === 'top') {
                 // Resizing from top - adjust start time
-                newStartTime = resizingEvent.event.startTime.add(deltaHours, 'hour');
+                newStartTime = resizingEvent.event.startTime.add(snappedDeltaMinutes, 'minute');
                 // Ensure minimum 15-minute duration
                 if (newEndTime.diff(newStartTime, 'minute') < 15) {
                     newStartTime = newEndTime.subtract(15, 'minute');
                 }
             } else {
                 // Resizing from bottom - adjust end time
-                newEndTime = resizingEvent.event.endTime.add(deltaHours, 'hour');
+                newEndTime = resizingEvent.event.endTime.add(snappedDeltaMinutes, 'minute');
                 // Ensure minimum 15-minute duration
                 if (newEndTime.diff(newStartTime, 'minute') < 15) {
                     newEndTime = newStartTime.add(15, 'minute');
@@ -683,6 +716,159 @@ export default function TimeSlotColumn({
                                     top: `${resizePreview.top + resizePreview.height + 8}px`,
                                     left: '-85px',
                                     backgroundColor: getTaskColor(resizingEvent.event.task.state),
+                                    color: '#fff',
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    pointerEvents: 'none',
+                                    zIndex: 102,
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: 2,
+                                }}
+                            >
+                                {newEndTime.format('h:mm A')}
+                            </Box>
+                        );
+                    })()}
+                </>
+            )}
+
+            {/* Drag preview with dotted lines and time labels */}
+            {draggedEvent && dragPreview && day && (
+                <>
+                    {/* Preview box */}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: `${dragPreview.top}px`,
+                            left: '2px',
+                            right: '2px',
+                            height: `${dragPreview.height}px`,
+                            backgroundColor: alpha(getTaskColor(draggedEvent.task.state), 0.3),
+                            border: `2px dashed ${getTaskColor(draggedEvent.task.state)}`,
+                            borderRadius: 1,
+                            pointerEvents: 'none',
+                            zIndex: 100,
+                            transition: 'none',
+                        }}
+                    />
+                    
+                    {/* Top time indicator line (start time) */}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: `${dragPreview.top - 1}px`,
+                            left: '-500px',
+                            right: '-200px',
+                            height: '3px',
+                            background: `repeating-linear-gradient(
+                                to right,
+                                ${getTaskColor(draggedEvent.task.state)} 0px,
+                                ${getTaskColor(draggedEvent.task.state)} 10px,
+                                transparent 10px,
+                                transparent 20px
+                            )`,
+                            pointerEvents: 'none',
+                            zIndex: 101,
+                            transition: 'none',
+                            boxShadow: `0 0 4px ${getTaskColor(draggedEvent.task.state)}`,
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                left: '500px',
+                                top: -5,
+                                width: 0,
+                                height: 0,
+                                borderLeft: '6px solid transparent',
+                                borderRight: '6px solid transparent',
+                                borderTop: `7px solid ${getTaskColor(draggedEvent.task.state)}`,
+                            },
+                        }}
+                    />
+                    
+                    {/* Start time label */}
+                    {(() => {
+                        const hourOffset = currentDragY.current / hourHeight;
+                        const totalMinutes = hourOffset * 60;
+                        const snappedMinutes = Math.round(totalMinutes / 10) * 10;
+                        const dayStart = day.startOf('day');
+                        const newStartTime = dayStart.add(snappedMinutes, 'minute');
+                        
+                        return (
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: `${dragPreview.top - 20}px`,
+                                    left: '-85px',
+                                    backgroundColor: getTaskColor(draggedEvent.task.state),
+                                    color: '#fff',
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    pointerEvents: 'none',
+                                    zIndex: 102,
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: 2,
+                                }}
+                            >
+                                {newStartTime.format('h:mm A')}
+                            </Box>
+                        );
+                    })()}
+                    
+                    {/* Bottom time indicator line (end time) */}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: `${dragPreview.top + dragPreview.height - 1}px`,
+                            left: '-500px',
+                            right: '-200px',
+                            height: '3px',
+                            background: `repeating-linear-gradient(
+                                to right,
+                                ${getTaskColor(draggedEvent.task.state)} 0px,
+                                ${getTaskColor(draggedEvent.task.state)} 10px,
+                                transparent 10px,
+                                transparent 20px
+                            )`,
+                            pointerEvents: 'none',
+                            zIndex: 101,
+                            transition: 'none',
+                            boxShadow: `0 0 4px ${getTaskColor(draggedEvent.task.state)}`,
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                left: '500px',
+                                bottom: -5,
+                                width: 0,
+                                height: 0,
+                                borderLeft: '6px solid transparent',
+                                borderRight: '6px solid transparent',
+                                borderBottom: `7px solid ${getTaskColor(draggedEvent.task.state)}`,
+                            },
+                        }}
+                    />
+                    
+                    {/* End time label */}
+                    {(() => {
+                        const hourOffset = currentDragY.current / hourHeight;
+                        const totalMinutes = hourOffset * 60;
+                        const snappedMinutes = Math.round(totalMinutes / 10) * 10;
+                        const dayStart = day.startOf('day');
+                        const duration = draggedEvent.endTime.diff(draggedEvent.startTime, 'minute');
+                        const newEndTime = dayStart.add(snappedMinutes + duration, 'minute');
+                        
+                        return (
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: `${dragPreview.top + dragPreview.height + 8}px`,
+                                    left: '-85px',
+                                    backgroundColor: getTaskColor(draggedEvent.task.state),
                                     color: '#fff',
                                     px: 1,
                                     py: 0.5,
