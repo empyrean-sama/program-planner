@@ -10,6 +10,7 @@ import WeekView from './WeekView';
 import DayView from './DayView';
 import CalendarContextMenu from './CalendarContextMenu';
 import AddTaskScheduleDialog from './AddTaskScheduleDialog';
+import TaskDialog from '../Tasks/TaskDialog';
 import { calendarCommands } from './commands/calendarCommands';
 import {
     CalendarContextMenuPosition,
@@ -40,6 +41,11 @@ export default function CalendarPage() {
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
     const [scheduleDialogDate, setScheduleDialogDate] = useState<Dayjs | undefined>(undefined);
     const [scheduleDialogHour, setScheduleDialogHour] = useState<number | undefined>(undefined);
+    const [scheduleDialogTaskId, setScheduleDialogTaskId] = useState<string | undefined>(undefined);
+    const [scheduleDialogTaskReadonly, setScheduleDialogTaskReadonly] = useState(false);
+    const [quickCreateDialogOpen, setQuickCreateDialogOpen] = useState(false);
+    const [quickCreateDate, setQuickCreateDate] = useState<Dayjs | undefined>(undefined);
+    const [quickCreateHour, setQuickCreateHour] = useState<number | undefined>(undefined);
     const [refreshKey, setRefreshKey] = useState(0);
 
     // Restore view and date from navigation state if coming back from task details
@@ -121,17 +127,41 @@ export default function CalendarPage() {
         // Refresh calendar views by incrementing refresh key
         setRefreshKey(prev => prev + 1);
         setScheduleDialogOpen(false);
+        // Reset task-related state
+        setScheduleDialogTaskId(undefined);
+        setScheduleDialogTaskReadonly(false);
         globalState.showToast('Schedule entry added successfully', 'success', 3000);
     };
 
-    // Expose openScheduleDialog, navigate, and location to context for commands
+    const openQuickCreateDialog = (date?: Dayjs, hour?: number) => {
+        setQuickCreateDate(date);
+        setQuickCreateHour(hour);
+        setQuickCreateDialogOpen(true);
+        handleCloseContextMenu();
+    };
+
+    const handleQuickTaskCreated = (taskId?: string) => {
+        // Close the task dialog and immediately open the schedule dialog
+        setQuickCreateDialogOpen(false);
+        // Wait a moment for the task creation to complete, then open schedule dialog
+        setTimeout(() => {
+            setScheduleDialogTaskId(taskId);
+            setScheduleDialogTaskReadonly(true);
+            openScheduleDialog(quickCreateDate, quickCreateHour);
+            globalState.showToast('Task created! Now add a schedule.', 'success', 2000);
+        }, 200);
+    };
+
+    // Expose openScheduleDialog, openQuickCreateDialog, navigate, and location to context for commands
     const contextWithDialog: CalendarContextMenuContext & { 
         openScheduleDialog: (date?: Dayjs, hour?: number) => void;
+        openQuickCreateDialog: (date?: Dayjs, hour?: number) => void;
         navigate: ReturnType<typeof useNavigate>;
         location: ReturnType<typeof useLocation>;
     } = {
         ...contextMenuContext!,
         openScheduleDialog,
+        openQuickCreateDialog,
         navigate,
         location,
     };
@@ -191,8 +221,20 @@ export default function CalendarPage() {
                 open={scheduleDialogOpen}
                 initialDate={scheduleDialogDate}
                 initialHour={scheduleDialogHour}
-                onClose={() => setScheduleDialogOpen(false)}
+                initialTaskId={scheduleDialogTaskId}
+                taskReadonly={scheduleDialogTaskReadonly}
+                onClose={() => {
+                    setScheduleDialogOpen(false);
+                    setScheduleDialogTaskId(undefined);
+                    setScheduleDialogTaskReadonly(false);
+                }}
                 onEntryAdded={handleScheduleAdded}
+            />
+
+            <TaskDialog
+                open={quickCreateDialogOpen}
+                onClose={() => setQuickCreateDialogOpen(false)}
+                onTaskCreated={handleQuickTaskCreated}
             />
         </Box>
     );

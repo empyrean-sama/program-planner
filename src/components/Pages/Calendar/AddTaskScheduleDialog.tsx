@@ -36,6 +36,8 @@ interface AddTaskScheduleDialogProps {
     open: boolean;
     initialDate?: Dayjs;
     initialHour?: number;
+    initialTaskId?: string;
+    taskReadonly?: boolean;
     onClose: () => void;
     onEntryAdded: () => void;
 }
@@ -44,6 +46,8 @@ export default function AddTaskScheduleDialog({
     open,
     initialDate,
     initialHour,
+    initialTaskId,
+    taskReadonly = false,
     onClose,
     onEntryAdded,
 }: AddTaskScheduleDialogProps) {
@@ -57,6 +61,11 @@ export default function AddTaskScheduleDialog({
     useEffect(() => {
         if (open) {
             loadTasks();
+            
+            // Set initial task if provided
+            if (initialTaskId) {
+                setSelectedTaskId(initialTaskId);
+            }
             
             // Set initial times based on context
             if (initialDate && initialHour !== undefined) {
@@ -72,7 +81,7 @@ export default function AddTaskScheduleDialog({
                 setEndTime(dayjs().add(1, 'hour'));
             }
         }
-    }, [open, initialDate, initialHour]);
+    }, [open, initialDate, initialHour, initialTaskId]);
 
     const loadTasks = async () => {
         const result = await window.taskAPI.getAllTasks();
@@ -248,6 +257,7 @@ export default function AddTaskScheduleDialog({
                             placeholder="Search for a task..."
                             searchThreshold={5}
                             error={!!error && !selectedTaskId}
+                            disabled={taskReadonly}
                         />
                     </Box>
 

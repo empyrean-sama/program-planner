@@ -37,7 +37,7 @@ import { useTheme } from '@mui/material/styles';
 interface TaskDialogProps {
     open: boolean;
     onClose: () => void;
-    onTaskCreated: () => void;
+    onTaskCreated: (taskId?: string) => void;
 }
 
 export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogProps) {
@@ -113,7 +113,7 @@ export default function TaskDialog({ open, onClose, onTaskCreated }: TaskDialogP
         const result = await window.taskAPI.createTask(input);
         if (result.success) {
             handleClose();
-            onTaskCreated();
+            onTaskCreated(result.data?.id);
         } else {
             setErrors({ general: result.error || 'Failed to create task' });
         }

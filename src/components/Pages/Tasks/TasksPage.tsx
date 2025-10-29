@@ -59,7 +59,7 @@ export default function TasksPage() {
         setCreateDialogOpen(true);
     };
 
-    const handleTaskCreated = () => {
+    const handleTaskCreated = (taskId?: string) => {
         setCreateDialogOpen(false);
         loadTasks();
     };

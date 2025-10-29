@@ -1,6 +1,7 @@
 import { CalendarContextMenuCommand } from '../types/CalendarContextMenuTypes';
 import EventIcon from '@mui/icons-material/Event';
 import InfoIcon from '@mui/icons-material/Info';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 import React from 'react';
 
 /**
@@ -39,6 +40,17 @@ export const calendarCommands: CalendarContextMenuCommand[] = [
             // Call the openScheduleDialog function passed in context
             if (context.openScheduleDialog) {
                 context.openScheduleDialog(context.date, context.hour);
+            }
+        },
+    },
+    {
+        id: 'create-and-schedule',
+        label: 'Create Task and Schedule',
+        icon: React.createElement(EventNoteIcon),
+        action: (context: any) => {
+            // Call the openQuickCreateDialog function passed in context
+            if (context.openQuickCreateDialog) {
+                context.openQuickCreateDialog(context.date, context.hour);
             }
         },
     },
