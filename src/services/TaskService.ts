@@ -19,9 +19,9 @@ export class TaskService {
     private tasks: Task[] = [];
 
     constructor() {
-        // Use app installation directory instead of userData
-        const appPath = app.getAppPath();
-        const dataDir = path.join(appPath, 'data');
+        // Use userData directory for storing application data
+        const userDataPath = app.getPath('userData');
+        const dataDir = path.join(userDataPath, 'data');
         
         // Create data directory if it doesn't exist
         if (!fs.existsSync(dataDir)) {

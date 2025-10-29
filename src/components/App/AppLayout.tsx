@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router';
+import { createHashRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router';
 import { Box, CircularProgress } from '@mui/material';
 
 import PageEnclosure from '../Pages/PageEnclosure';
@@ -29,7 +29,7 @@ function PageLoader() {
 }
 
 export default function AppLayout() {
-    const router = createBrowserRouter(createRoutesFromElements(
+    const router = createHashRouter(createRoutesFromElements(
         <Route path="/" element={<PageEnclosure />}>
             <Route index element={<HomePage />} />
             <Route path="calendar" element={

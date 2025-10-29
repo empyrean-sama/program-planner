@@ -50,8 +50,8 @@ export default function HomePage() {
                         icon={BarChartIcon}
                         link="/metrics"
                         buttonText="View Metrics"
-                        color={theme.palette.success.main}
-                        buttonColor='success'
+                        color={theme.palette.info.main}
+                        buttonColor='info'
                     />
                 </Stack>
                 <TextBubble title='Getting Started' content='To get started with Program Planner, navigate to the Calendar or Tasks sections using the tiles above. You can add events to your calendar and create tasks to keep track of your to-dos. Explore the settings to customize your experience.' />

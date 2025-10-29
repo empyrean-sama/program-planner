@@ -1,4 +1,5 @@
 import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router';
 
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -17,6 +18,12 @@ export interface HomeTileProps {
 
 export default function HomeTile(props: HomeTileProps) {
     const theme = useTheme();
+    const navigate = useNavigate();
+
+    const handleNavigate = () => {
+        navigate(props.link);
+    };
+
     return (
         <Paper
             elevation={0}
@@ -38,7 +45,7 @@ export default function HomeTile(props: HomeTileProps) {
             />
             <Typography variant="h6" gutterBottom>{props.title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{props.description}</Typography>
-            <Button variant="contained" fullWidth href={props.link} color={props.buttonColor}>
+            <Button variant="contained" fullWidth onClick={handleNavigate} color={props.buttonColor}>
                 {props.buttonText}
             </Button>
         </Paper>
