@@ -24,6 +24,9 @@ export interface ITaskAPI {
     removeScheduleEntry: (taskId: string, entryId: string) => Promise<{ success: boolean; data?: Task; error?: string }>;
     addComment: (input: AddCommentInput) => Promise<{ success: boolean; data?: Task; error?: string }>;
     getTasksByState: (state: string) => Promise<{ success: boolean; data?: Task[]; error?: string }>;
+    destroyAllData: () => Promise<{ success: boolean; error?: string }>;
+    exportData: () => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    importData: () => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

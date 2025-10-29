@@ -184,4 +184,31 @@ function setupTaskIpcHandlers() {
       return { success: false, error: (error as Error).message };
     }
   });
+
+  // Export data
+  ipcMain.handle('task:exportData', async () => {
+    try {
+      return taskService.exportData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Import data
+  ipcMain.handle('task:importData', async () => {
+    try {
+      return taskService.importData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Destroy all data
+  ipcMain.handle('task:destroyAllData', async () => {
+    try {
+      return taskService.destroyAllData();
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
 }

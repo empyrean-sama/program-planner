@@ -345,4 +345,98 @@ export class TaskService {
         this.saveTasks();
         return this.tasks.filter(task => task.state === state);
     }
+
+    /**
+     * Export all data to a JSON file
+     */
+    exportData(): { success: boolean; filePath?: string; error?: string } {
+        try {
+            const { dialog } = require('electron');
+            const path = require('path');
+            
+            // Show save dialog
+            const result = dialog.showSaveDialogSync({
+                title: 'Export Tasks Data',
+                defaultPath: path.join(require('os').homedir(), 'tasks-export.json'),
+                filters: [
+                    { name: 'JSON Files', extensions: ['json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            });
+
+            if (!result) {
+                return { success: false, error: 'Export cancelled by user' };
+            }
+
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                version: '1.0',
+                tasks: this.tasks
+            };
+
+            fs.writeFileSync(result, JSON.stringify(exportData, null, 2), 'utf-8');
+            return { success: true, filePath: result };
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            return { success: false, error: (error as Error).message };
+        }
+    }
+
+    /**
+     * Import data from a JSON file
+     */
+    importData(): { success: boolean; error?: string } {
+        try {
+            const { dialog } = require('electron');
+            
+            // Show open dialog
+            const result = dialog.showOpenDialogSync({
+                title: 'Import Tasks Data',
+                filters: [
+                    { name: 'JSON Files', extensions: ['json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ],
+                properties: ['openFile']
+            });
+
+            if (!result || result.length === 0) {
+                return { success: false, error: 'Import cancelled by user' };
+            }
+
+            const filePath = result[0];
+            const fileContent = fs.readFileSync(filePath, 'utf-8');
+            const importData = JSON.parse(fileContent);
+
+            // Validate import data structure
+            if (!importData.tasks || !Array.isArray(importData.tasks)) {
+                return { success: false, error: 'Invalid file format: missing tasks array' };
+            }
+
+            // Replace current tasks with imported tasks
+            this.tasks = importData.tasks;
+            
+            // Apply rules engine to all imported tasks
+            this.tasks.forEach(task => TaskStateRulesEngine.applyRules(task));
+            
+            this.saveTasks();
+            return { success: true };
+        } catch (error) {
+            console.error('Error importing data:', error);
+            return { success: false, error: (error as Error).message };
+        }
+    }
+
+    /**
+     * Destroy all data (permanently delete all tasks)
+     */
+    destroyAllData(): { success: boolean; error?: string } {
+        try {
+            this.tasks = [];
+            this.saveTasks();
+            return { success: true };
+        } catch (error) {
+            console.error('Error destroying data:', error);
+            return { success: false, error: (error as Error).message };
+        }
+    }
 }

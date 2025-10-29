@@ -11,6 +11,7 @@ const CalendarPage = lazy(() => import('../Pages/Calendar/CalendarPage'));
 const TasksPage = lazy(() => import('../Pages/Tasks/TasksPage'));
 const TaskDetailsPage = lazy(() => import('../Pages/Tasks/TaskDetailsPage'));
 const MetricsPage = lazy(() => import('../Pages/Metrics/MetricsPage'));
+const SettingsPage = lazy(() => import('../Pages/Settings/SettingsPage'));
 
 // Loading fallback component
 function PageLoader() {
@@ -50,6 +51,11 @@ export default function AppLayout() {
             <Route path="metrics" element={
                 <Suspense fallback={<PageLoader />}>
                     <MetricsPage />
+                </Suspense>
+            } />
+            <Route path="settings" element={
+                <Suspense fallback={<PageLoader />}>
+                    <SettingsPage />
                 </Suspense>
             } />
             <Route path="*" element={<NotFoundErrorPage />} />

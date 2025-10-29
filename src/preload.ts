@@ -29,4 +29,7 @@ contextBridge.exposeInMainWorld('taskAPI', {
         ipcRenderer.invoke('task:removeScheduleEntry', taskId, entryId),
     addComment: (input: AddCommentInput) => ipcRenderer.invoke('task:addComment', input),
     getTasksByState: (state: string) => ipcRenderer.invoke('task:getByState', state),
+    destroyAllData: () => ipcRenderer.invoke('task:destroyAllData'),
+    exportData: () => ipcRenderer.invoke('task:exportData'),
+    importData: () => ipcRenderer.invoke('task:importData'),
 });
