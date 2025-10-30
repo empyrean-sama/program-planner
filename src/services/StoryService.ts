@@ -39,8 +39,28 @@ export class StoryService {
                 const data = fs.readFileSync(this.storiesFilePath, 'utf-8');
                 this.stories = JSON.parse(data);
                 
-                // Apply rules to all stories
-                this.stories.forEach(story => this.applyStoryRules(story));
+                // Validate and migrate each story
+                this.stories.forEach(story => {
+                    // Ensure taskIds array exists
+                    if (!story.taskIds || !Array.isArray(story.taskIds)) {
+                        story.taskIds = [];
+                    }
+                    
+                    // Ensure numeric fields exist with valid values
+                    if (typeof story.totalPoints !== 'number') {
+                        story.totalPoints = 0;
+                    }
+                    if (typeof story.completedPoints !== 'number') {
+                        story.completedPoints = 0;
+                    }
+                    if (typeof story.progress !== 'number' || story.progress < 0 || story.progress > 100) {
+                        story.progress = 0;
+                    }
+                    
+                    // Apply story rules to recalculate based on actual tasks
+                    this.applyStoryRules(story);
+                });
+                
                 this.saveStories();
             } else {
                 this.stories = [];
@@ -65,15 +85,19 @@ export class StoryService {
      * Apply rule-based state calculation to a story
      */
     private applyStoryRules(story: Story): void {
-        const tasks = this.getTasksFn().filter(task => task.storyIds.includes(story.id));
+        const allTasks = this.getTasksFn();
+        const tasks = allTasks.filter(task => task.storyIds && task.storyIds.includes(story.id));
+        
+        // Update story's taskIds to match actual task associations (sync the many-to-many relationship)
+        story.taskIds = tasks.map(t => t.id);
         
         // Calculate total points
-        story.totalPoints = tasks.reduce((sum, task) => sum + task.points, 0);
+        story.totalPoints = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
         
         // Calculate completed points (only Finished tasks count)
         story.completedPoints = tasks
             .filter(task => task.state === 'Finished')
-            .reduce((sum, task) => sum + task.points, 0);
+            .reduce((sum, task) => sum + (task.points || 0), 0);
         
         // Calculate progress percentage
         story.progress = story.totalPoints > 0 
@@ -214,11 +238,23 @@ export class StoryService {
             throw new Error(`Story with ID ${input.storyId} not found`);
         }
 
-        // Check if task is already in story
-        if (story.taskIds.includes(input.taskId)) {
-            throw new Error('Task is already in this story');
+        // Verify the task exists
+        const allTasks = this.getTasksFn();
+        const taskExists = allTasks.some(t => t.id === input.taskId);
+        
+        if (!taskExists) {
+            throw new Error(`Task with ID ${input.taskId} not found`);
         }
 
+        // Check if task is already in story (redundancy check)
+        if (story.taskIds.includes(input.taskId)) {
+            // Task already associated, just recalculate and return
+            this.applyStoryRules(story);
+            this.saveStories();
+            return story;
+        }
+
+        // Add to story's taskIds (though applyStoryRules will sync this anyway)
         story.taskIds.push(input.taskId);
         this.applyStoryRules(story);
         this.saveStories();

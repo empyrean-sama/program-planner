@@ -57,7 +57,7 @@ export class DataManagementService {
 
             const exportData = {
                 exportDate: new Date().toISOString(),
-                version: '2.0',
+                version: '1.0',
                 appVersion: app.getVersion(),
                 tasks: this.taskService.getAllTasks(),
                 stories: this.storyService.getAllStories()
@@ -97,8 +97,8 @@ export class DataManagementService {
             const warnings: string[] = [];
 
             // Detect file format and import accordingly
-            if (importData.version === '2.0') {
-                // New unified format
+            if (importData.version === '1.0' || importData.version === '2.0') {
+                // Unified format (v1.0 or v2.0 compatible)
                 if (importData.tasks && Array.isArray(importData.tasks)) {
                     const taskResult = this.taskService.importFromData(importData.tasks);
                     if (!taskResult.success) {

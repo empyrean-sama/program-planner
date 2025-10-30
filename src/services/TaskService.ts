@@ -56,20 +56,44 @@ export class TaskService {
                 const data = fs.readFileSync(this.tasksFilePath, 'utf-8');
                 this.tasks = JSON.parse(data);
                 
-                // Migrate tasks that don't have relationships field
+                // Migrate and validate each task
                 this.tasks.forEach(task => {
+                    // Ensure relationships array exists
                     if (!task.relationships) {
                         task.relationships = [];
                     }
+                    
                     // Migrate from single storyId to multiple storyIds
                     if ('storyId' in task && !(task as any).storyIds) {
                         (task as any).storyIds = (task as any).storyId ? [(task as any).storyId] : [];
                         delete (task as any).storyId;
                     }
-                    // Ensure storyIds exists
-                    if (!task.storyIds) {
+                    
+                    // Ensure storyIds exists and is an array
+                    if (!task.storyIds || !Array.isArray(task.storyIds)) {
                         task.storyIds = [];
                     }
+                    
+                    // Ensure scheduleHistory exists and is an array
+                    if (!task.scheduleHistory || !Array.isArray(task.scheduleHistory)) {
+                        task.scheduleHistory = [];
+                    }
+                    
+                    // Ensure comments exists and is an array
+                    if (!task.comments || !Array.isArray(task.comments)) {
+                        task.comments = [];
+                    }
+                    
+                    // Ensure numeric fields have valid values
+                    if (typeof task.elapsedTime !== 'number' || task.elapsedTime < 0) {
+                        task.elapsedTime = this.calculateElapsedTime(task.scheduleHistory);
+                    }
+                    
+                    if (typeof task.points !== 'number' || task.points < 0) {
+                        task.points = this.calculatePoints(task.estimatedTime);
+                    }
+                    
+                    // Apply state rules
                     TaskStateRulesEngine.applyRules(task);
                 });
                 
@@ -118,8 +142,8 @@ export class TaskService {
         // Fibonacci sequence: 1, 2, 3, 5, 8, 13, 21, 34, 55, 89...
         const fibonacci = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
         
-        // Find the closest Fibonacci number
-        for (let i = 0; i < fibonacci.length; i++) {
+        // Find the closest Fibonacci number (round up for better estimation)
+        for (let i = 1; i < fibonacci.length; i++) {
             if (units <= fibonacci[i]) {
                 return fibonacci[i];
             }
@@ -139,7 +163,8 @@ export class TaskService {
             const endTime = new Date(entry.endTime);
             // Only count entries that have already ended
             if (endTime <= now) {
-                return total + entry.duration;
+                // Ensure duration is non-negative
+                return total + Math.max(0, entry.duration);
             }
             return total;
         }, 0);
@@ -304,6 +329,12 @@ export class TaskService {
 
         const startTime = new Date(input.startTime);
         const endTime = new Date(input.endTime);
+        
+        // Validate that end time is after start time
+        if (endTime <= startTime) {
+            throw new Error('End time must be after start time');
+        }
+        
         const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)); // in minutes
 
         const entry: ScheduleHistoryEntry = {
@@ -342,6 +373,12 @@ export class TaskService {
 
         const startTime = new Date(input.startTime);
         const endTime = new Date(input.endTime);
+        
+        // Validate that end time is after start time
+        if (endTime <= startTime) {
+            throw new Error('End time must be after start time');
+        }
+        
         const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)); // in minutes
 
         task.scheduleHistory[entryIndex] = {
@@ -609,6 +646,11 @@ export class TaskService {
      * Check if adding a relationship would create a cycle (for DAG validation)
      */
     private wouldCreateCycle(taskId: string, relatedTaskId: string, type: 'predecessor' | 'successor'): boolean {
+        // Prevent self-referencing
+        if (taskId === relatedTaskId) {
+            return true;
+        }
+        
         // If we're adding a predecessor, check if relatedTask already depends on taskId
         // If we're adding a successor, check if taskId already depends on relatedTask
         
@@ -672,17 +714,23 @@ export class TaskService {
             const currentTask = this.getTaskById(currentTaskId);
             
             if (!currentTask) {
+                console.warn(`Task ${currentTaskId} not found during graph traversal`);
                 return;
             }
 
             nodes.push(currentTask);
 
-            // Get all predecessors
-            const predecessors = currentTask.relationships.filter(rel => rel.type === 'predecessor');
+            // Safely get all predecessors
+            const predecessors = (currentTask.relationships || []).filter(rel => rel.type === 'predecessor');
             
             for (const predecessor of predecessors) {
-                edges.push({ from: predecessor.relatedTaskId, to: currentTaskId });
-                traverse(predecessor.relatedTaskId);
+                // Validate that the related task exists before adding edge
+                if (this.getTaskById(predecessor.relatedTaskId)) {
+                    edges.push({ from: predecessor.relatedTaskId, to: currentTaskId });
+                    traverse(predecessor.relatedTaskId);
+                } else {
+                    console.warn(`Related task ${predecessor.relatedTaskId} not found, skipping edge`);
+                }
             }
         };
 
@@ -740,7 +788,13 @@ export class TaskService {
             throw new Error(`Task with ID ${taskId} not found`);
         }
 
-        task.storyIds = storyIds;
+        // Validate that all story IDs are unique
+        const uniqueStoryIds = [...new Set(storyIds)];
+        if (uniqueStoryIds.length !== storyIds.length) {
+            console.warn('Duplicate story IDs detected and removed');
+        }
+
+        task.storyIds = uniqueStoryIds;
         this.saveTasks();
         return task;
     }
