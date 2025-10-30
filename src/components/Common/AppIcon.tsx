@@ -3,62 +3,48 @@ import { SvgIcon, SvgIconProps } from '@mui/material';
 
 export default function AppIcon(props: SvgIconProps) {
     return (
-        <SvgIcon {...props} viewBox="0 0 48 48">
-            {/* Main shield/badge shape - like Python, Swift logos */}
-            <path
-                d="M 24 6 L 38 12 L 38 28 C 38 34 32 40 24 42 C 16 40 10 34 10 28 L 10 12 Z"
-                fill="#5865F2"
-            />
+        <SvgIcon {...props} viewBox="0 0 512 512">
+            <defs>
+                {/* Gradient for depth */}
+                <linearGradient id="appIconMainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{ stopColor: '#5865F2', stopOpacity: 1 }} />
+                    <stop offset="100%" style={{ stopColor: '#4752C4', stopOpacity: 1 }} />
+                </linearGradient>
+                
+                {/* Inner glow gradient */}
+                <linearGradient id="appIconGlowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{ stopColor: '#7289DA', stopOpacity: 1 }} />
+                    <stop offset="100%" style={{ stopColor: '#5865F2', stopOpacity: 1 }} />
+                </linearGradient>
+            </defs>
             
-            {/* Inner gradient accent */}
-            <path
-                d="M 24 10 L 34 14 L 34 27 C 34 31 30 35 24 37 C 18 35 14 31 14 27 L 14 14 Z"
-                fill="#7289DA"
-            />
+            {/* Background circle - fills canvas like modern apps */}
+            <circle cx="256" cy="256" r="240" fill="url(#appIconMainGradient)" />
             
-            {/* Code bracket symbols - left bracket */}
-            <path
-                d="M 20 18 L 16 18 L 16 30 L 20 30"
-                stroke="#FFFFFF"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-            />
+            {/* Inner circle for depth */}
+            <circle cx="256" cy="256" r="200" fill="url(#appIconGlowGradient)" opacity="0.3" />
             
-            {/* Code bracket symbols - right bracket */}
-            <path
-                d="M 28 18 L 32 18 L 32 30 L 28 30"
-                stroke="#FFFFFF"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-            />
-            
-            {/* Forward slash in the middle - represents code */}
-            <line
-                x1="26"
-                y1="20"
-                x2="22"
-                y2="28"
-                stroke="#57F287"
-                strokeWidth="3"
-                strokeLinecap="round"
-            />
-            
-            {/* Small "P" letter at bottom for Program */}
-            <text
-                x="24"
-                y="38"
-                fontSize="8"
-                fontWeight="bold"
-                fill="#FFFFFF"
-                textAnchor="middle"
-                fontFamily="monospace"
-            >
-                P
-            </text>
+            {/* Large, bold "P" - main identifier */}
+            <g transform="translate(256, 256)">
+                {/* P letter - thick and bold for visibility */}
+                <path
+                    d="M -60 -120 L -60 120 L -20 120 L -20 20 L 40 20 C 90 20 100 -10 100 -50 C 100 -90 90 -120 40 -120 Z M -20 -80 L 40 -80 C 60 -80 60 -60 60 -50 C 60 -40 60 -20 40 -20 L -20 -20 Z"
+                    fill="#FFFFFF"
+                />
+                
+                {/* Accent dot/checkmark - represents planning/completion */}
+                <circle cx="70" cy="80" r="25" fill="#43B581" />
+                
+                {/* Small tick inside the circle */}
+                <path
+                    d="M 60 80 L 68 88 L 82 70"
+                    stroke="#FFFFFF"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                />
+            </g>
         </SvgIcon>
     );
 }

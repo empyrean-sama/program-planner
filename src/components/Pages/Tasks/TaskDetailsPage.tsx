@@ -413,7 +413,7 @@ export default function TaskDetailsPage() {
     const warningMessages = getWarningMessages(appearance.warnings);
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ bgcolor: 'background.default' }}>
             {/* Header with Task Title */}
             <Box 
                 sx={{ 

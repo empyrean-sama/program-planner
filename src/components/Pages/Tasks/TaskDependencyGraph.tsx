@@ -146,16 +146,16 @@ export default function TaskDependencyGraph({ open, taskId, onClose }: TaskDepen
     };
 
     const getNodeColor = (task: Task, isTarget: boolean): string => {
-        if (isTarget) return '#1976d2';
+        if (isTarget) return '#5865F2'; // Primary blurple for better contrast
         
         switch (task.state) {
-            case 'Finished': return '#4caf50';
-            case 'Failed': return '#f44336';
-            case 'Doing': return '#ff9800';
-            case 'Scheduled': return '#2196f3';
-            case 'Filed': return '#9e9e9e';
-            case 'Deferred': return '#795548';
-            case 'Removed': return '#607d8b';
+            case 'Finished': return '#43B581';  // Darker green for better contrast
+            case 'Failed': return '#ED4245';    // Red - good contrast
+            case 'Doing': return '#FAA61A';     // Amber/orange for better contrast
+            case 'Scheduled': return '#5865F2'; // Blurple for better contrast
+            case 'Filed': return '#9e9e9e';     // Gray - neutral
+            case 'Deferred': return '#9C27B0';  // Purple - good contrast
+            case 'Removed': return '#607d8b';   // Blue-gray - neutral
             default: return '#9e9e9e';
         }
     };

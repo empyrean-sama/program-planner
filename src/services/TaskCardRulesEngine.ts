@@ -171,26 +171,26 @@ function generateProgressGradient(progressPercentage: number, exceedsEstimate: b
         // Red gradient for exceeded estimate
         const intensity = Math.min(progressPercentage - 100, 50);
         return `linear-gradient(135deg, 
-            rgba(244, 67, 54, 0.1) 0%, 
-            rgba(244, 67, 54, ${0.2 + intensity / 250}) 100%)`;
+            rgba(237, 66, 69, 0.1) 0%, 
+            rgba(237, 66, 69, ${0.2 + intensity / 250}) 100%)`;
     }
     
-    // Green to yellow gradient based on progress
+    // Green to amber gradient based on progress
     if (progressPercentage < 50) {
         // Green gradient for early progress
         return `linear-gradient(135deg, 
-            rgba(76, 175, 80, 0.1) 0%, 
-            rgba(76, 175, 80, ${0.15 + progressPercentage / 333}) 100%)`;
+            rgba(67, 181, 129, 0.1) 0%, 
+            rgba(67, 181, 129, ${0.15 + progressPercentage / 333}) 100%)`;
     } else if (progressPercentage < 80) {
-        // Yellow gradient for mid progress
+        // Amber gradient for mid progress
         return `linear-gradient(135deg, 
-            rgba(255, 193, 7, 0.1) 0%, 
-            rgba(255, 193, 7, ${0.15 + progressPercentage / 400}) 100%)`;
+            rgba(250, 166, 26, 0.1) 0%, 
+            rgba(250, 166, 26, ${0.15 + progressPercentage / 400}) 100%)`;
     } else {
         // Orange gradient for high progress
         return `linear-gradient(135deg, 
-            rgba(255, 152, 0, 0.1) 0%, 
-            rgba(255, 152, 0, ${0.2 + progressPercentage / 333}) 100%)`;
+            rgba(250, 166, 26, 0.1) 0%, 
+            rgba(250, 166, 26, ${0.2 + progressPercentage / 333}) 100%)`;
     }
 }
 
@@ -224,8 +224,8 @@ function calculateStyles(task: Task, metrics: TaskCardMetrics, warnings: TaskCar
                 );
                 styles.backgroundColor = 'transparent';
             } else {
-                // Light blue gradient if no estimate
-                styles.backgroundImage = 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 150, 243, 0.2) 100%)';
+                // Light blurple gradient if no estimate (using primary color)
+                styles.backgroundImage = 'linear-gradient(135deg, rgba(88, 101, 242, 0.1) 0%, rgba(88, 101, 242, 0.2) 100%)';
                 styles.backgroundColor = 'transparent';
             }
             
@@ -242,8 +242,8 @@ function calculateStyles(task: Task, metrics: TaskCardMetrics, warnings: TaskCar
             break;
             
         case 'Doing':
-            // Vibrant blue gradient with pulse effect
-            styles.backgroundImage = 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(33, 150, 243, 0.3) 100%)';
+            // Vibrant blurple gradient with pulse effect (primary color)
+            styles.backgroundImage = 'linear-gradient(135deg, rgba(88, 101, 242, 0.15) 0%, rgba(88, 101, 242, 0.3) 100%)';
             styles.backgroundColor = 'transparent';
             styles.borderColor = 'primary.main';
             styles.borderWidth = 2;
@@ -256,8 +256,8 @@ function calculateStyles(task: Task, metrics: TaskCardMetrics, warnings: TaskCar
             break;
             
         case 'Finished':
-            // Success green background
-            styles.backgroundImage = 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.25) 100%)';
+            // Success green background (darker for better contrast)
+            styles.backgroundImage = 'linear-gradient(135deg, rgba(67, 181, 129, 0.15) 0%, rgba(67, 181, 129, 0.25) 100%)';
             styles.backgroundColor = 'transparent';
             styles.borderColor = 'success.main';
             styles.borderWidth = 1;
@@ -265,8 +265,8 @@ function calculateStyles(task: Task, metrics: TaskCardMetrics, warnings: TaskCar
             break;
             
         case 'Failed':
-            // Red background
-            styles.backgroundImage = 'linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(244, 67, 54, 0.25) 100%)';
+            // Red background (adjusted for consistency)
+            styles.backgroundImage = 'linear-gradient(135deg, rgba(237, 66, 69, 0.15) 0%, rgba(237, 66, 69, 0.25) 100%)';
             styles.backgroundColor = 'transparent';
             styles.borderColor = 'error.main';
             styles.borderWidth = 1;
@@ -274,8 +274,8 @@ function calculateStyles(task: Task, metrics: TaskCardMetrics, warnings: TaskCar
             break;
             
         case 'Deferred':
-            // Amber/orange background
-            styles.backgroundImage = 'linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 152, 0, 0.2) 100%)';
+            // Amber/orange background (better contrast)
+            styles.backgroundImage = 'linear-gradient(135deg, rgba(250, 166, 26, 0.1) 0%, rgba(250, 166, 26, 0.2) 100%)';
             styles.backgroundColor = 'transparent';
             styles.opacity = 0.85;
             break;

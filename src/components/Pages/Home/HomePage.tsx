@@ -84,7 +84,7 @@ export default function HomePage() {
     
     if (loading) {
         return (
-            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ height: '100%', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Stack alignItems="center" spacing={2}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" color="text.secondary">Loading your workspace...</Typography>
@@ -94,7 +94,7 @@ export default function HomePage() {
     }
     
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ bgcolor: 'background.default' }}>
             <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', py: 6, px: 3 }}>
                 <Container maxWidth="lg">
                     <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
@@ -131,21 +131,30 @@ export default function HomePage() {
                     </Stack>
                 </Container>
             </Box>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Container maxWidth="lg" sx={{ py: 4, pb: 6 }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
                     <Box sx={{ flex: 1 }}>
                         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>Quick Actions</Typography>
                         <Stack spacing={2}>
                             {[
-                                { title: 'Calendar', desc: 'View and manage your schedule', icon: CalendarMonthIcon, path: '/calendar', color: 'primary.main' },
-                                { title: 'Tasks', desc: 'Track and manage your tasks', icon: AssignmentIcon, path: '/tasks', color: 'secondary.main' },
-                                { title: 'Stories', desc: 'Group tasks into user stories', icon: AutoStoriesIcon, path: '/stories', color: 'success.main' },
-                                { title: 'Metrics', desc: 'Analyze your productivity', icon: BarChartIcon, path: '/metrics', color: 'info.main' }
+                                { title: 'Calendar', desc: 'View and manage your schedule', icon: CalendarMonthIcon, path: '/calendar', color: 'primary.main', textColor: 'primary.contrastText' },
+                                { title: 'Tasks', desc: 'Track and manage your tasks', icon: AssignmentIcon, path: '/tasks', color: 'secondary.main', textColor: 'secondary.contrastText' },
+                                { title: 'Stories', desc: 'Group tasks into user stories', icon: AutoStoriesIcon, path: '/stories', color: 'success.main', textColor: 'success.contrastText' },
+                                { title: 'Metrics', desc: 'Analyze your productivity', icon: BarChartIcon, path: '/metrics', color: 'info.main', textColor: 'info.contrastText' }
                             ].map(item => (
                                 <Card key={item.path} sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }} onClick={() => navigate(item.path)}>
                                     <CardContent>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Box sx={{ width: 48, height: 48, borderRadius: 2, bgcolor: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                            <Box sx={{ 
+                                                width: 48, 
+                                                height: 48, 
+                                                borderRadius: 2, 
+                                                bgcolor: item.color, 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                color: item.textColor 
+                                            }}>
                                                 <item.icon />
                                             </Box>
                                             <Box sx={{ flex: 1 }}>

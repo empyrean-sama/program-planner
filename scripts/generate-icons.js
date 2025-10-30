@@ -9,13 +9,21 @@ async function generateIcons() {
   try {
     console.log('Converting SVG to PNG...');
     
-    // Generate 512x512 PNG (for Linux and as base for other formats)
+    // Generate 512x512 PNG (for Linux, high-DPI Windows taskbar, and as base for other formats)
     await sharp(inputSvg)
       .resize(512, 512)
       .png()
       .toFile(path.join(outputDir, 'icon.png'));
     
     console.log('✓ Generated icon.png (512x512)');
+    
+    // Generate 512x512 PNG specifically for ICO (Windows 11 taskbar high-DPI)
+    await sharp(inputSvg)
+      .resize(512, 512)
+      .png()
+      .toFile(path.join(outputDir, 'icon-512.png'));
+    
+    console.log('✓ Generated icon-512.png (512x512)');
     
     // Generate 256x256 PNG (for ICO)
     await sharp(inputSvg)

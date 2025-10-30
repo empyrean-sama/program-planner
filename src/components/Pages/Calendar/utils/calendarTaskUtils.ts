@@ -99,14 +99,15 @@ export function calculateEventPosition(
 
 /**
  * Get the color for a task based on its state
+ * Colors chosen for optimal contrast in dark mode
  */
 export function getTaskColor(state: string): string {
     switch (state) {
         case 'Filed': return '#9e9e9e'; // gray
-        case 'Scheduled': return '#2196f3'; // blue
-        case 'Doing': return '#ff9800'; // orange
-        case 'Finished': return '#4caf50'; // green
-        case 'Failed': return '#f44336'; // red
+        case 'Scheduled': return '#5865F2'; // blurple (primary) - better contrast
+        case 'Doing': return '#FAA61A'; // orange/amber - better contrast than bright yellow
+        case 'Finished': return '#43B581'; // darker green - better contrast with white text
+        case 'Failed': return '#ED4245'; // red
         case 'Deferred': return '#9c27b0'; // purple
         case 'Removed': return '#757575'; // dark gray
         default: return '#9e9e9e';

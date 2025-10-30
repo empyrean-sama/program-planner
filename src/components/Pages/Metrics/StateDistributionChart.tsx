@@ -9,13 +9,13 @@ export interface StateDistributionChartProps {
 }
 
 const STATE_COLORS: Record<TaskState, string> = {
-    Filed: '#9E9E9E',
-    Scheduled: '#2196F3',
-    Doing: '#FF9800',
-    Finished: '#4CAF50',
-    Failed: '#F44336',
-    Deferred: '#9C27B0',
-    Removed: '#607D8B',
+    Filed: '#9E9E9E',           // Gray - neutral
+    Scheduled: '#5865F2',        // Blurple (primary) - better contrast than #2196F3
+    Doing: '#FAA61A',            // Amber/orange - better contrast than #FF9800
+    Finished: '#43B581',         // Darker green - better contrast than #4CAF50
+    Failed: '#ED4245',           // Red - good contrast
+    Deferred: '#9C27B0',         // Purple - good contrast
+    Removed: '#607D8B',          // Blue-gray - neutral
 };
 
 const STATE_LABELS: Record<TaskState, string> = {

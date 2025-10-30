@@ -6,36 +6,40 @@ export default function AppThemeProvider(props: React.PropsWithChildren) {
         palette: {
             mode: 'dark',
             primary: {
-                main: '#5865F2', // Discord blurple
+                main: '#5865F2', // Discord blurple - good contrast
                 light: '#7289DA',
                 dark: '#4752C4',
                 contrastText: '#FFFFFF',
             },
             secondary: {
-                main: '#57F287', // Discord green
-                light: '#6FFF99',
+                main: '#43B581', // Darker green for better contrast (was #57F287)
+                light: '#57F287',
                 dark: '#3BA55D',
-                contrastText: '#000000',
+                contrastText: '#FFFFFF', // Changed from black for better contrast
             },
             error: {
                 main: '#ED4245', // Discord red
                 light: '#F04747',
                 dark: '#C93B3E',
+                contrastText: '#FFFFFF',
             },
             warning: {
-                main: '#FEE75C', // Discord yellow
-                light: '#FFEC6E',
-                dark: '#E5D24A',
+                main: '#FAA61A', // Darker yellow/orange for better contrast (was #FEE75C)
+                light: '#FEE75C',
+                dark: '#E5971A',
+                contrastText: '#000000',
             },
             info: {
                 main: '#5865F2',
                 light: '#7289DA',
                 dark: '#4752C4',
+                contrastText: '#FFFFFF',
             },
             success: {
-                main: '#57F287',
-                light: '#6FFF99',
+                main: '#43B581', // Darker green for better contrast (was #57F287)
+                light: '#57F287',
                 dark: '#3BA55D',
+                contrastText: '#FFFFFF',
             },
             background: {
                 default: '#36393F', // Discord dark gray

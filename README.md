@@ -1,288 +1,617 @@
-# Program Planner Documentation
-
-## 📚 Documentation Index
-
-Welcome to the Program Planner documentation. All documentation is now centralized in the **[docs/](./docs/)** folder.
-
-**👉 [Browse all documentation in docs/INDEX.md](./docs/INDEX.md)**
-
----
-
-## Quick Start
-
-- **New Developer?** Start with [docs/DEVELOPER.md](./docs/DEVELOPER.md)
-- **Want to understand tasks?** Read [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md)
-- **Using the calendar?** See [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md)
+<div align="center">
+  <img src="assets/icons/icon.png" alt="Program Planner Logo" width="128" height="128">
+  
+  # Program Planner
+  
+  **Your all-in-one desktop task and schedule management application**
+  
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](package.json)
+  [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/empyrean-sama/program-planner)
+  
+  [Features](#-features) • [Download](#-download--installation) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started) • [For Developers](#-for-developers)
+</div>
 
 ---
 
-## Core Documentation
+## 📖 Overview
 
-### [docs/DEVELOPER.md](./docs/DEVELOPER.md) - 🎯 Main Developer Guide
-**Start here for complete project overview**
+**Program Planner** is a powerful desktop application designed to help you manage your tasks, projects, and schedules with ease. Built with modern technologies like Electron and React, it provides a beautiful, intuitive interface for organizing your work and life.
 
-Contents:
-- Project architecture and tech stack
-- Setup and installation instructions
-- Complete project structure
-- Component documentation
-- State management patterns
-- Services and utilities guide
-- Styling and theming
-- Performance optimizations
-- Error handling strategies
-- Build and deployment
-- Coding standards
-- Troubleshooting guide
+### Why Program Planner?
 
-**Audience**: New developers, contributors, maintainers
+- ✅ **All-in-one solution** - Tasks, stories, calendar, and metrics in one place
+- 🎯 **Intuitive interface** - Clean, modern Material-UI design
+- 📅 **Flexible scheduling** - Month, week, and day calendar views
+- 🔄 **Smart task states** - Automatic state transitions and validations
+- 📊 **Visual insights** - Built-in metrics and performance tracking
+- 💾 **Local-first** - Your data stays on your computer
+- 🚀 **Fast & responsive** - Optimized performance with React 19
+- 🎨 **Beautiful UI** - Polished interface with smooth animations
 
 ---
 
-## Feature Documentation
+## ✨ Features
 
-### [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md) - Task Management System
-**Complete guide to the task management features**
+### 📋 Task Management
 
-Contents:
-- Task properties and structure
-- State machine and transitions
-- CRUD operations
-- Comments system
-- Schedule entries
-- Task dialogs and forms
+- **Complete task lifecycle** - From planning to completion
+- **Smart state machine** - Automatic validation of state transitions
+- **Rich descriptions** - Markdown support for detailed notes
+- **Comments & discussions** - Add comments to track conversations
+- **Priority levels** - Organize by importance
+- **Deadlines & tracking** - Never miss a due date
+- **Visual warnings** - Color-coded alerts for overdue tasks
 
-**Audience**: Developers working on task features
+### 📅 Calendar Integration
 
----
+- **Multiple views** - Month, week, and day layouts
+- **Drag & drop scheduling** - Easily schedule tasks on the calendar
+- **Quick task creation** - Create tasks directly from calendar slots
+- **Schedule management** - Set specific time blocks for tasks
+- **Context menus** - Right-click for quick actions
+- **Visual indicators** - See task status at a glance
 
-### [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md) - Task Filtering & Search
-**Advanced filtering and search capabilities**
+### 📖 Story Management
 
-Contents:
-- Filter types and options
-- Search functionality
-- Sorting mechanisms
-- Filter combinations
-- Performance considerations
-- UI components
+- **Group related tasks** - Organize tasks into user stories
+- **Many-to-many relationships** - Tasks can belong to multiple stories
+- **Progress tracking** - See story completion status
+- **Flexible organization** - Structure work your way
 
-**Audience**: Developers working on search/filter features
+### 🔍 Advanced Filtering
 
----
+- **Multiple filter types** - By status, priority, deadline, story
+- **Smart search** - Find tasks instantly
+- **Custom combinations** - Mix and match filters
+- **Saved views** - Quick access to common filters
 
-### [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md) - Calendar Integration
-**How tasks integrate with the calendar system**
+### 📊 Metrics & Insights
 
-Contents:
-- Calendar views (Month, Week, Day)
-- Task scheduling
-- Schedule entries
-- Context menus
-- Date/time selection
-- Visual indicators
-
-**Audience**: Developers working on calendar features
+- **Deadline adherence** - Track on-time completion rates
+- **Task distribution** - Visualize work breakdown
+- **Performance trends** - See your productivity over time
+- **Velocity tracking** - Measure completion rates
 
 ---
 
-## Technical Documentation
+## 💻 Download & Installation
 
-### [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md) - State Rules Engine
-**Business logic for task state transitions**
+### Windows
 
-Contents:
-- State machine definition
-- Allowed transitions
-- State validation rules
-- Edge cases
-- Error handling
+1. Download the latest `.exe` installer from [Releases](https://github.com/empyrean-sama/program-planner/releases)
+2. Run the installer
+3. Launch Program Planner from Start Menu
 
-**Audience**: Developers working on task states
+### macOS
 
----
+1. Download the latest `.dmg` file from [Releases](https://github.com/empyrean-sama/program-planner/releases)
+2. Open the DMG and drag Program Planner to Applications
+3. Launch from Applications folder
 
-### [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md) - Visual Rules Engine
-**Rules for task card appearance and warnings**
+### Linux
 
-Contents:
-- Visual styling rules
-- Warning conditions
-- Color coding
-- Border styles
-- Warning messages
-- Priority indicators
+**Debian/Ubuntu:**
+```bash
+# Download the .deb file from releases
+sudo dpkg -i program-planner_1.0.0_amd64.deb
+```
 
-**Audience**: Developers working on task UI
+**Red Hat/Fedora:**
+```bash
+# Download the .rpm file from releases
+sudo rpm -i program-planner-1.0.0.x86_64.rpm
+```
 
----
+### System Requirements
 
-### [docs/TASK_CARD_RULES_QUICK_REFERENCE.md](./docs/TASK_CARD_RULES_QUICK_REFERENCE.md) - Quick Reference
-**Quick lookup for task card rules**
-
-Contents:
-- Warning types table
-- Visual appearance table
-- Quick examples
-
-**Audience**: All developers (reference)
+- **OS:** Windows 10/11, macOS 10.13+, or modern Linux distribution
+- **RAM:** 4GB minimum, 8GB recommended
+- **Disk Space:** 200MB free space
+- **Display:** 1280x720 minimum resolution
 
 ---
 
-## Component-Specific Documentation
+## 📸 Screenshots
 
-### Calendar Components
+### Home Dashboard
+![Home Dashboard](docs/screenshots/home-dashboard.png)
+*Quick access to all your tasks, stories, and calendar from the home page*
 
-#### [docs/CONTEXT_MENU_README.md](./docs/CONTEXT_MENU_README.md) - Context Menu System
-**Right-click menus in calendar views**
+### Calendar View
+![Calendar View](docs/screenshots/calendar-view.png)
+*Visualize your schedule with month, week, and day views*
 
-Contents:
-- Context menu architecture
-- Command pattern
-- Menu items and actions
-- Context data structure
-- Extensibility guide
+### Task Management
+![Task Management](docs/screenshots/task-management.png)
+*Create, edit, and organize tasks with an intuitive interface*
 
-**Audience**: Developers working on calendar interactions
+### Task Details
+![Task Details](docs/screenshots/task-details.png)
+*Rich task information with descriptions, comments, and metadata*
 
----
-
-## Refactoring Documentation
-
-### [docs/REFACTORING_SUMMARY.md](./docs/REFACTORING_SUMMARY.md) - Recent Improvements
-**Complete summary of October 2025 refactoring**
-
-Contents:
-- Performance optimizations
-- Loading skeletons
-- Animation system
-- Z-index management
-- Error handling
-- Documentation improvements
-- Migration guide
-
-**Audience**: All developers
+### Metrics Dashboard
+![Metrics](docs/screenshots/metrics.png)
+*Track your productivity with visual charts and insights*
 
 ---
 
-## Code Organization
+## 🚀 Getting Started
 
-### Source Code Structure
+### First Launch
 
-\`\`\`
-src/
-├── components/     → React components (see DEVELOPER.md)
-├── services/       → Business logic (see Technical Documentation)
-├── utils/          → Utility functions (see DEVELOPER.md)
-├── types/          → TypeScript types (see TASK_FEATURE_README.md)
-├── hooks/          → Custom React hooks (see DEVELOPER.md)
-└── context/        → React contexts (see DEVELOPER.md)
-\`\`\`
+1. **Welcome** - On first launch, you'll see the home dashboard
+2. **Create a task** - Click "Tasks" in the sidebar, then click "Add Task"
+3. **Schedule it** - Navigate to "Calendar" and drag your task to a time slot
+4. **Track progress** - Update task status as you work
+5. **Review metrics** - Check your productivity in the Metrics page
 
----
+### Quick Tips
 
-## Documentation by Role
+💡 **Right-click on calendar** - Access quick actions and task creation  
+💡 **Use keyboard shortcuts** - Navigate quickly (see Help menu)  
+💡 **Filter tasks** - Use the search bar to find specific tasks  
+💡 **Create stories** - Group related tasks into user stories  
+💡 **Check warnings** - Red borders indicate tasks needing attention
 
-### For New Developers
-1. Read [docs/DEVELOPER.md](./docs/DEVELOPER.md) - Complete overview
-2. Set up development environment (see docs/DEVELOPER.md § Getting Started)
-3. Review [Project Structure](./docs/DEVELOPER.md#project-structure)
-4. Understand [Architecture](./docs/DEVELOPER.md#architecture)
-5. Review [Coding Standards](./docs/DEVELOPER.md#coding-standards)
+### Common Workflows
 
-### For Feature Development
-1. **Task Features**: [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md)
-2. **Calendar Features**: [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md)
-3. **Filtering**: [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md)
-4. **Rules Engines**: [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md), [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md)
+#### Creating and Scheduling a Task
+1. Go to Tasks page
+2. Click "Add Task" button
+3. Fill in title, description, priority, and deadline
+4. Click "Create"
+5. Switch to Calendar view
+6. Drag task from sidebar to desired time slot
 
-### For UI/UX Work
-1. [Styling & Theming](./docs/DEVELOPER.md#styling--theming)
-2. [Task Card Rules](./docs/TASK_CARD_RULES_ENGINE.md)
-3. [Component Documentation](./docs/DEVELOPER.md#component-documentation)
-4. [Animation Utils](./docs/DEVELOPER.md#animationsts)
+#### Managing Task States
+Tasks flow through these states:
+```
+Planning → In Progress → Review → Done
+           ↓
+        Blocked (if needed)
+```
 
-### For Performance Optimization
-1. [Performance Optimizations](./docs/DEVELOPER.md#performance-optimizations)
-2. [State Management](./docs/DEVELOPER.md#state-management)
-3. Review component patterns in docs/DEVELOPER.md
+The app automatically validates transitions and shows warnings for invalid states.
 
-### For Bug Fixing
-1. [Troubleshooting](./docs/DEVELOPER.md#troubleshooting)
-2. [Error Handling](./docs/DEVELOPER.md#error-handling)
-3. Check relevant feature documentation
+#### Organizing with Stories
+1. Go to Stories page
+2. Click "Add Story" button
+3. Create your story
+4. When creating/editing tasks, assign them to stories
+5. Track story progress on Stories page
 
 ---
 
-## Documentation Standards
+## 🎯 Key Concepts
 
-### When to Update Documentation
+### Task States
 
-- **Feature Addition**: Update relevant README and DEVELOPER.md
-- **API Changes**: Update affected documentation
-- **New Components**: Add to Component Documentation section
-- **Bug Fixes**: Update Troubleshooting if notable
-- **Architecture Changes**: Update Architecture section
+| State | Description | Visual Indicator |
+|-------|-------------|------------------|
+| **Planning** | Task is being planned | Gray border |
+| **In Progress** | Actively being worked on | Blue border |
+| **Review** | Completed, awaiting review | Orange border |
+| **Blocked** | Cannot progress due to issues | Red border |
+| **Done** | Completed and reviewed | Green border |
 
-### Documentation Format
+### Task Warnings
 
-- Use Markdown for all documentation
-- Include code examples where applicable
-- Keep table of contents updated
-- Add visual diagrams for complex concepts
-- Link between related documents
+The app automatically detects issues with your tasks:
 
----
+- 🔴 **Red border** - Task has warnings (overdue, blocked without reason, etc.)
+- ⚠️ **Warning icon** - Hover to see specific issues
+- 📅 **Deadline badges** - Color-coded based on urgency
 
-## Contributing to Documentation
+### Calendar Scheduling
 
-1. Follow existing formatting style
-2. Keep technical accuracy high
-3. Include practical examples
-4. Update this index when adding new docs
-5. Review related docs for consistency
-
----
-
-## Quick Reference
-
-| Need | Documentation |
-|------|---------------|
-| Project setup | [docs/DEVELOPER.md](./docs/DEVELOPER.md#getting-started) |
-| Architecture overview | [docs/DEVELOPER.md](./docs/DEVELOPER.md#architecture) |
-| Component list | [docs/DEVELOPER.md](./docs/DEVELOPER.md#component-documentation) |
-| Task structure | [docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md) |
-| State transitions | [docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md) |
-| Visual rules | [docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md) |
-| Calendar integration | [docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md) |
-| Filtering/Search | [docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md) |
-| Context menus | [docs/CONTEXT_MENU_README.md](./docs/CONTEXT_MENU_README.md) |
-| Coding standards | [docs/DEVELOPER.md](./docs/DEVELOPER.md#coding-standards) |
-| Troubleshooting | [docs/DEVELOPER.md](./docs/DEVELOPER.md#troubleshooting) |
-| Recent improvements | [docs/REFACTORING_SUMMARY.md](./docs/REFACTORING_SUMMARY.md) |
+- **Schedule entries** - Assign specific time blocks to tasks
+- **Multiple schedules** - Same task can have multiple time blocks
+- **Drag & drop** - Move scheduled tasks between time slots
+- **Quick create** - Right-click calendar to create tasks
 
 ---
 
-## External Resources
+## 💡 Tips & Tricks
 
-- [Electron Documentation](https://www.electronjs.org/docs)
-- [React Documentation](https://react.dev/)
-- [Material-UI Documentation](https://mui.com/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Day.js Documentation](https://day.js.org/)
+### Productivity Tips
+
+1. **Start your day** - Check the calendar view each morning
+2. **Use priorities** - Focus on high-priority tasks first
+3. **Set realistic deadlines** - The app will warn you if tasks are overdue
+4. **Review regularly** - Use the metrics page to track patterns
+5. **Group related work** - Create stories for projects
+
+### Power User Features
+
+- **Quick actions** - Right-click tasks and calendar slots for context menus
+- **Bulk operations** - Select multiple tasks for batch updates
+- **Keyboard navigation** - Arrow keys work in calendar views
+- **Search operators** - Use filters for advanced queries
+- **Export data** - Tasks are stored in JSON format (see data folder)
 
 ---
 
-**Maintained by**: Sriveer Neerukonda 
-**Last Updated**: October 29, 2025  
-**Version**: 1.0.0
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Q: My task won't change state**  
+A: The app validates state transitions. For example, you can't mark a task "Done" if it's still in "Planning". Move it to "In Progress" first, then "Review", then "Done".
+
+**Q: Task has a red border**  
+A: This indicates a warning. Common causes:
+- Task is overdue
+- Task is blocked without a blocked reason
+- Invalid state combination
+- Missing required fields
+
+Hover over the warning icon to see the specific issue.
+
+**Q: Calendar isn't showing my tasks**  
+A: Make sure:
+- Tasks have schedule entries (drag them onto the calendar)
+- You're viewing the correct date range
+- Filters aren't hiding tasks
+
+**Q: Data not saving**  
+A: Program Planner auto-saves to `data/tasks.json`. Check:
+- The app has write permissions
+- Disk space is available
+- File isn't locked by another program
+
+**Q: App performance is slow**  
+A: Try:
+- Closing unused tasks/stories
+- Clearing old completed tasks
+- Restarting the application
+- Checking system resources
 
 ---
 
-## 📝 Need Help?
+## 🔒 Privacy & Data
 
-- **Can't find what you need?** Check [docs/DEVELOPER.md](./docs/DEVELOPER.md) - it's the most comprehensive guide
-- **Found an error?** Please report it or submit a PR
-- **Documentation unclear?** Open an issue with suggestions
+### Your Data is Yours
 
-**Happy coding! 🚀**
+- ✅ **100% local** - All data stored on your computer
+- ✅ **No cloud sync** - No external servers involved
+- ✅ **No tracking** - Zero analytics or telemetry
+- ✅ **No internet required** - Works completely offline
+
+### Data Location
+
+**Windows:** `C:\Users\[YourName]\AppData\Roaming\program-planner\data\`  
+**macOS:** `~/Library/Application Support/program-planner/data/`  
+**Linux:** `~/.config/program-planner/data/`
+
+### Backup Your Data
+
+Your tasks are stored in JSON format. To backup:
+
+1. Close Program Planner
+2. Copy the entire `data` folder
+3. Store it somewhere safe (external drive, cloud storage, etc.)
+
+To restore:
+1. Close Program Planner
+2. Replace the `data` folder with your backup
+3. Restart the app
+
+---
+
+## 🤝 Support & Community
+
+### Get Help
+
+- 📖 **Documentation** - Check the [Developer Docs](#-for-developers) section below
+- 🐛 **Report bugs** - [Open an issue](https://github.com/empyrean-sama/program-planner/issues)
+- 💡 **Feature requests** - [Suggest new features](https://github.com/empyrean-sama/program-planner/issues)
+- 📧 **Contact** - Email: sriveer.neerukonda@outlook.com
+
+### Contributing
+
+We welcome contributions! See the [For Developers](#-for-developers) section below to get started.
+
+---
+
+## 📜 License
+
+Program Planner is released under the **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2025 Sriveer Neerukonda
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+---
+
+# 👨‍💻 For Developers
+
+The following section is for developers who want to contribute to or customize Program Planner.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Electron 39.0.0 (Desktop app framework)
+- **Frontend:** React 19.2.0 with TypeScript 4.5.4
+- **UI Library:** Material-UI (MUI) v7.3.4
+- **Build Tool:** Vite 5.4.21
+- **Date Library:** Day.js 1.11.18
+- **Styling:** Emotion (CSS-in-JS)
+
+## 🏗️ Architecture
+
+```
+program-planner/
+├── src/
+│   ├── main.ts              # Electron main process
+│   ├── preload.ts           # Preload script
+│   ├── renderer.tsx         # React app entry
+│   ├── components/          # React components
+│   │   ├── App/            # App shell & providers
+│   │   ├── Common/         # Reusable components
+│   │   └── Pages/          # Page components
+│   ├── services/           # Business logic
+│   │   ├── TaskService.ts
+│   │   ├── StoryService.ts
+│   │   └── *RulesEngine.ts
+│   ├── utils/              # Utility functions
+│   ├── types/              # TypeScript types
+│   ├── hooks/              # Custom React hooks
+│   └── constants/          # App constants
+├── assets/                 # Icons and images
+├── data/                   # Local data storage
+└── docs/                   # Documentation
+```
+
+## 🚀 Development Setup
+
+### Prerequisites
+
+- **Node.js** 18+ and npm
+- **Git**
+- A code editor (VS Code recommended)
+
+### Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/empyrean-sama/program-planner.git
+   cd program-planner
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run start
+   ```
+   
+   The app will launch with hot-reload enabled.
+
+4. **Build for production**
+   ```bash
+   npm run make
+   ```
+   
+   Distributable files will be in `out/make/`
+
+### Development Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run start` | Start development server with hot reload |
+| `npm run package` | Package app without creating installers |
+| `npm run make` | Build production installers for current platform |
+| `npm run publish` | Publish to configured distribution channel |
+| `npm run lint` | Run ESLint on TypeScript files |
+
+## 📚 Developer Documentation
+
+Comprehensive documentation for developers is available in the `docs/` folder:
+
+### Essential Reading
+
+1. **[docs/DEVELOPER.md](./docs/DEVELOPER.md)** - 🎯 **START HERE**
+   - Complete developer guide
+   - Architecture overview
+   - Component documentation
+   - Coding standards
+   - Best practices
+
+2. **[docs/INDEX.md](./docs/INDEX.md)** - Documentation index
+   - Quick navigation to all docs
+   - Documentation by role
+   - Quick reference tables
+
+### Feature Documentation
+
+- **[docs/TASK_FEATURE_README.md](./docs/TASK_FEATURE_README.md)** - Task management system
+- **[docs/TASK_FILTERING_README.md](./docs/TASK_FILTERING_README.md)** - Search & filtering
+- **[docs/CALENDAR_TASK_INTEGRATION.md](./docs/CALENDAR_TASK_INTEGRATION.md)** - Calendar integration
+- **[docs/CONTEXT_MENU_README.md](./docs/CONTEXT_MENU_README.md)** - Context menu system
+
+### Technical Documentation
+
+- **[docs/TASK_STATE_RULES_ENGINE.md](./docs/TASK_STATE_RULES_ENGINE.md)** - State machine rules
+- **[docs/TASK_CARD_RULES_ENGINE.md](./docs/TASK_CARD_RULES_ENGINE.md)** - Visual styling rules
+- **[docs/TASK_CARD_RULES_QUICK_REFERENCE.md](./docs/TASK_CARD_RULES_QUICK_REFERENCE.md)** - Quick reference
+
+### Recent Updates
+
+- **[docs/REFACTORING_FINAL_SUMMARY.md](./docs/REFACTORING_FINAL_SUMMARY.md)** - Complete refactoring summary
+- **[docs/PRODUCTION_OPTIMIZATION.md](./docs/PRODUCTION_OPTIMIZATION.md)** - Production optimizations
+
+## 🎨 Project Structure
+
+### Key Components
+
+**App Shell:**
+- `App.tsx` - Main app component
+- `AppLayout.tsx` - Layout with sidebar
+- `AppThemeProvider.tsx` - MUI theme configuration
+- `AppGlobalStateProvider.tsx` - Global state management
+
+**Pages:**
+- `HomePage.tsx` - Dashboard landing page
+- `TasksPage.tsx` - Task management
+- `CalendarPage.tsx` - Calendar views (month/week/day)
+- `StoriesPage.tsx` - Story management
+- `MetricsPage.tsx` - Analytics & insights
+
+**Services:**
+- `TaskService.ts` - Task CRUD operations
+- `StoryService.ts` - Story CRUD operations
+- `TaskStateRulesEngine.ts` - State transition validation
+- `TaskCardRulesEngine.ts` - Visual appearance rules
+
+### Data Storage
+
+Tasks and stories are stored in JSON format:
+- `data/tasks.json` - All task data
+- Services handle reading/writing with atomic operations
+- Auto-save on all modifications
+
+## 🔧 Development Guidelines
+
+### Code Style
+
+- **TypeScript** - Strict mode enabled
+- **React Hooks** - Functional components preferred
+- **Material-UI** - Use MUI components consistently
+- **Emotion** - Styled components for custom styling
+- **ESLint** - Run `npm run lint` before committing
+
+### State Management
+
+- **Local state** - `useState` for component-level state
+- **Global state** - React Context for app-wide state
+- **Services** - Business logic separated from components
+- **Immutability** - Never mutate state directly
+
+### Performance
+
+- **React.memo** - Applied to expensive components
+- **Lazy loading** - Code splitting for routes
+- **Optimized re-renders** - Proper dependency arrays
+- **Production builds** - StrictMode disabled in production
+
+### Testing
+
+- Manual testing required currently
+- Test all state transitions
+- Verify calendar drag & drop
+- Check edge cases in rules engines
+
+## 🐛 Debugging
+
+### Development Tools
+
+1. **React DevTools** - Inspect component tree and state
+2. **Electron DevTools** - Full Chrome DevTools available
+3. **Console logging** - Use `logger` utility (see [PRODUCTION_OPTIMIZATION.md](./docs/PRODUCTION_OPTIMIZATION.md))
+4. **VS Code debugger** - Attach to Electron process
+
+### Common Development Issues
+
+**Issue: App won't start**
+- Check Node version (18+ required)
+- Delete `node_modules` and reinstall
+- Clear Vite cache: `rm -rf .vite`
+
+**Issue: Hot reload not working**
+- Restart dev server
+- Check Vite config
+- Ensure files are saved
+
+**Issue: TypeScript errors**
+- Run `npm run lint` to see all errors
+- Check type definitions in `src/types/`
+- Verify import paths
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. **Make your changes**
+   - Follow coding standards
+   - Update documentation
+   - Test thoroughly
+4. **Commit your changes**
+   ```bash
+   git commit -m "Add: your feature description"
+   ```
+5. **Push to your fork**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+6. **Open a Pull Request**
+   - Describe your changes
+   - Reference any related issues
+   - Await review
+
+### Contribution Guidelines
+
+- ✅ Follow existing code style
+- ✅ Update documentation for new features
+- ✅ Add comments for complex logic
+- ✅ Test edge cases
+- ✅ Keep commits focused and atomic
+- ✅ Write clear commit messages
+
+## 📞 Developer Support
+
+- **Documentation issues?** Open an issue or PR
+- **Architecture questions?** Check [docs/DEVELOPER.md](./docs/DEVELOPER.md)
+- **Need help?** Email: sriveer.neerukonda@outlook.com
+
+---
+
+## 🙏 Acknowledgments
+
+Built with amazing open-source technologies:
+- [Electron](https://www.electronjs.org/) - Desktop app framework
+- [React](https://react.dev/) - UI library
+- [Material-UI](https://mui.com/) - Component library
+- [Vite](https://vitejs.dev/) - Build tool
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Day.js](https://day.js.org/) - Date manipulation
+
+---
+
+<div align="center">
+  
+  **Made with ❤️ by Sriveer Neerukonda**
+  
+  [⭐ Star on GitHub](https://github.com/empyrean-sama/program-planner) • [Report Bug](https://github.com/empyrean-sama/program-planner/issues) • [Request Feature](https://github.com/empyrean-sama/program-planner/issues)
+  
+</div>
+```

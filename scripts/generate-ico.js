@@ -9,6 +9,7 @@ async function generateICO() {
     const iconDir = path.join(__dirname, '../assets/icons');
     
     // Use multiple sizes for the ICO file
+    // Windows 11 taskbar uses up to 512x512 for high-DPI displays
     const pngFiles = [
       path.join(iconDir, 'icon-16.png'),
       path.join(iconDir, 'icon-32.png'),
@@ -16,6 +17,7 @@ async function generateICO() {
       path.join(iconDir, 'icon-64.png'),
       path.join(iconDir, 'icon-128.png'),
       path.join(iconDir, 'icon-256.png'),
+      path.join(iconDir, 'icon-512.png'),
     ];
     
     const icoBuffer = await pngToIco(pngFiles);
