@@ -8,8 +8,9 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](package.json)
   [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/empyrean-sama/program-planner)
+  [![Release](https://img.shields.io/badge/release-October%202025-blue.svg)](docs/V1_RELEASE_NOTES.md)
   
-  [Features](#-features) • [Download](#-download--installation) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started) • [For Developers](#-for-developers)
+  [⚡ Quick Start](QUICK_START.md) • [Features](#-features) • [Download](#-download--installation) • [Screenshots](#-screenshots) • [For Developers](#-for-developers)
 </div>
 
 ---
@@ -42,6 +43,8 @@
 - **Priority levels** - Organize by importance
 - **Deadlines & tracking** - Never miss a due date
 - **Visual warnings** - Color-coded alerts for overdue tasks
+- **Task dependencies** - Define prerequisite relationships
+- **Dependency graph** - 🆕 Visual dependency tree with story grouping
 
 ### 📅 Calendar Integration
 
@@ -57,6 +60,7 @@
 - **Group related tasks** - Organize tasks into user stories
 - **Many-to-many relationships** - Tasks can belong to multiple stories
 - **Progress tracking** - See story completion status
+- **Burndown charts** - Visualize story progress
 - **Flexible organization** - Structure work your way
 
 ### 🔍 Advanced Filtering
@@ -72,6 +76,15 @@
 - **Task distribution** - Visualize work breakdown
 - **Performance trends** - See your productivity over time
 - **Velocity tracking** - Measure completion rates
+- **Story metrics** - Burndown and progress charts
+
+### 🎨 Visual Features (v1.0)
+
+- **Modern dependency graph** - 🆕 Interactive visualization with story grouping
+- **Zoom controls** - Navigate complex task trees
+- **Color-coded states** - Instantly recognize task status
+- **Grid backgrounds** - Clean, professional design
+- **Smooth animations** - Polished user experience
 
 ---
 

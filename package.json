@@ -1,8 +1,8 @@
 {
   "name": "program-planner",
-  "productName": "program-planner",
+  "productName": "Program Planner",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "A powerful desktop application for task and project management with visual dependency graphs, calendar integration, and story-based organization",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
